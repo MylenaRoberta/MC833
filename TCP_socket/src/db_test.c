@@ -9,12 +9,12 @@ int main(void)
 
     // Queries
     get_all_profiles(db);
-    //get_all_profiles_from_major(db, "Ciência da Computação");
-    //get_all_profiles_from_ability(db, "Ciência de Dados");
-    //get_all_profiles_from_graduation_year(db, 2023);
+    get_all_profiles_from_major(db, "'Ciência da Computação'");
+    get_all_profiles_from_ability(db, "'Ciência de Dados'");
+    get_all_profiles_from_graduation_year(db, 2018);
 
-    //char *email = "maria_souza@gmail.com";
-    //get_profile(db, email);
+    char *email = "'maria_souza@gmail.com'";
+    get_profile(db, email);
 
     close_db(db);
 
