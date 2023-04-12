@@ -29,7 +29,7 @@ int check_error(sqlite3 *db, int rc, char *err_msg)
             sqlite3_free(err_msg);
         }
 
-        sqlite3_close(db); // Closes the database handle
+        sqlite3_close(db); // Close the database handle
         return 1;
     }
 
@@ -40,7 +40,7 @@ sqlite3 *open_db(char *path)
 {
     sqlite3 *db; // Database handle
 
-    // Opens a new database connection
+    // Open a new database connection
     int rc = sqlite3_open(path, &db);
 
     if (check_error(db, rc, NULL))
@@ -84,7 +84,7 @@ int initialize_db(sqlite3 *db)
                   "   'Ciência de Dados'"
                   ");";
 
-    // Runs the query
+    // Run the query
     int rc = sqlite3_exec(db, query, 0, 0, &err_msg);
 
     if (check_error(db, rc, err_msg))
@@ -101,10 +101,10 @@ void get_all_profiles(sqlite3 *db)
 {
     char *err_msg = NULL;
 
-    char *query = "SELECT * FROM Profiles";
+    char *sql = "SELECT * FROM Profiles";
 
-    // Runs the query
-    int rc = sqlite3_exec(db, query, callback, 0, &err_msg);
+    // Run the query
+    int rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
 
     if (check_error(db, rc, err_msg))
     {
@@ -112,76 +112,45 @@ void get_all_profiles(sqlite3 *db)
     }
 }
 
-void get_all_profiles_from_major(sqlite3 *db, char *major)
+void get_profiles_from_major(sqlite3 *db, char *major);
+
+void get_profiles_from_ability(sqlite3 *db, char *ability);
+
+void get_profiles_from_graduation_year(sqlite3 *db, int year)
 {
     char *err_msg = NULL;
+    sqlite3_stmt *stmt;
 
-    char query[100];
-    sprintf(query, "SELECT email, first_name FROM Profiles WHERE major = %s", major);
-    printf("%s\n", query);
+    char *query = "SELECT email, first_name, major FROM Profiles "
+                  "WHERE graduation_year = ?";
 
-    // Runs the query
-    int rc = sqlite3_exec(db, query, callback, 0, &err_msg);
-
-    if (check_error(db, rc, err_msg))
-    {
-        fprintf(stderr, "Query execution failed\n");
-    }
-}
-
-void get_all_profiles_from_ability(sqlite3 *db, char *ability)
-{
-    char *err_msg = NULL;
-
-    char query[100];
-    sprintf(query, "SELECT email, first_name FROM Profiles WHERE abilities = %s", ability);
-    printf("%s\n", query);
-
-    // Runs the query
-    int rc = sqlite3_exec(db, query, callback, 0, &err_msg);
+    // Compile the query
+    int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
     if (check_error(db, rc, err_msg))
     {
-        fprintf(stderr, "Query execution failed\n");
+        fprintf(stderr, "Query preparation failed\n");
+        return;
     }
+    
+    // Bind the parameter value to the prepared statement
+    sqlite3_bind_int(stmt, 1, year);
+
+    // Evaluate the statement
+    int step = sqlite3_step(stmt);
+    
+    if (step == SQLITE_ROW)
+    {    
+        printf("%s : ", sqlite3_column_text(stmt, 0));
+        printf("%s\n", sqlite3_column_text(stmt, 1));
+    } 
+    
+    // Finalize the statement
+    sqlite3_finalize(stmt);
 }
 
-void get_all_profiles_from_graduation_year(sqlite3 *db, int year)
-{
-    char *err_msg = NULL;
+void get_profile(sqlite3 *db, char *email);
 
-    char query[100];
-    sprintf(query, "SELECT email, first_name, major FROM Profiles WHERE graduation_year = %d", year);
-    printf("%s\n", query);
-
-    // Runs the query
-    int rc = sqlite3_exec(db, query, callback, 0, &err_msg);
-
-    if (check_error(db, rc, err_msg))
-    {
-        fprintf(stderr, "Query execution failed\n");
-    }
-}
-
-void get_profile(sqlite3 *db, char *email)
-{
-    char *err_msg = NULL;
-
-    char query[100];
-    sprintf(query, "SELECT * FROM Profiles WHERE email = %s", email);
-    printf("%s\n", query);
-
-    // Runs the query
-    int rc = sqlite3_exec(db, query, callback, 0, &err_msg);
-
-    if (check_error(db, rc, err_msg))
-    {
-        fprintf(stderr, "Query execution failed\n");
-    }
-}
-
-// Função que registra um novo perfil
 int register_profile(sqlite3 *db, profile new_profile);
 
-// Função que remove um perfil a partir de seu email
-int remove_profile(sqlite3 *db, char *email);
+int remove_profile(sqlite3 *db, char* email);
