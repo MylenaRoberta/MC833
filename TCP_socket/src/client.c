@@ -11,9 +11,9 @@
 
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
-#define PORT "8330" // the port client will be connecting to
+#define PORT "8330" // Porta do servidor
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once
+#define MAXDATASIZE 100 // Maior número de bytes que pode ser recebido por vez
 
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
 void *get_in_addr(struct sockaddr *sa)
@@ -81,6 +81,15 @@ int main(int argc, char *argv[])
     printf("client: connecting to %s\n", s);
 
     freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
+
+    int len;
+    char msg[15] = "Query desejada";
+    len = strlen(msg);
+
+    if (send(sockfd, msg, len, 0) == -1) { // Envia mensagem ao servidor
+        perror("send");
+        printf("Apenas %d bytes foram enviados com sucesso.\n", len);
+    }
 
     // TODO: alterar para receber mais bytes
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
