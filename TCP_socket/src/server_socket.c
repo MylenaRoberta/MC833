@@ -16,6 +16,30 @@
 #define PORT "8330" // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
 #define BACKLOG 10  // Número máximo de conexões pendentes na fila
 
+// Função que garante que todos os bytes serão enviados
+int send_all(int dest_socket, char* msg, int* len){
+    int total = 0;          // Número de bytes enviados
+    int remainder = *len;   // Número de bytes restantes
+    int n;
+
+    while(total < *len) {
+        n = send(dest_socket, msg + total, remainder, 0);
+        if (n == -1){
+            break;
+        }
+        total += n;
+        remainder -= n;
+    }
+
+    *len = total;       // Número de bytes realmente enviados
+
+    if (n == -1) {
+        return -1;      // Em caso de algum erro
+    }
+
+    return 0;           // Em caso de sucesso
+}
+
 // Função responsável por finalizar processos zumbis
 void sigchild_handler(int s)
 {
@@ -132,9 +156,15 @@ int main(void)
         if (!fork())
         {                                                   // Cria processo filho para lidar com as conexões aceitas
                                                             // Esse trecho só é executado pelos processos filhos
-            close(socket_fd);                               // O socket que aceita conexões deve ser fechado para os processos filhos
-            if (send(new_fd, "Hello, world!", 13, 0) == -1) // Envia mensagem ao cliente conectado a este processo filho
+            int len;
+            char msg[14] = "Hello, world!";
+            len = strlen(msg);
+
+            close(socket_fd);                       // O socket que aceita conexões deve ser fechado para os processos filhos
+            if (send_all(new_fd, msg, &len) == -1) { // Envia mensagem ao cliente conectado a este processo filho
                 perror("send");
+                printf("Apenas %d bytes foram enviados com sucesso.\n", len);
+            }
             close(new_fd);
             exit(0);
         }
