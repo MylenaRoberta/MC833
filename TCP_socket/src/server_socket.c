@@ -15,6 +15,7 @@
 
 #define PORT "8330" // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
 #define BACKLOG 10  // Número máximo de conexões pendentes na fila
+#define MAXDATASIZE 100 // Maior número de bytes que pode ser recebido por vez
 
 // Função que garante que todos os bytes serão enviados
 int send_all(int dest_socket, char* msg, int* len){
@@ -156,11 +157,21 @@ int main(void)
         if (!fork())
         {                                                   // Cria processo filho para lidar com as conexões aceitas
                                                             // Esse trecho só é executado pelos processos filhos
-            int len;
-            char msg[14] = "Hello, world!";
+            int len, numbytes;
+            char buf[MAXDATASIZE];                  // Buffer para receber mensagem
+            char msg[15] = "Hello, client!";
             len = strlen(msg);
-
             close(socket_fd);                       // O socket que aceita conexões deve ser fechado para os processos filhos
+
+            if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1)   // Recebe os bytes enviados pelo cliente
+            {
+                perror("recv");
+                exit(1);
+            }
+            buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
+
+            printf("server: received '%s'\n", buf);
+
             if (send_all(new_fd, msg, &len) == -1) { // Envia mensagem ao cliente conectado a este processo filho
                 perror("send");
                 printf("Apenas %d bytes foram enviados com sucesso.\n", len);
