@@ -15,17 +15,14 @@ typedef struct
     char* abilities;
 } profile;
 
-// Imprime o resultado de uma query
-int callback(void *, int, char **, char **);
+// Fecha a conexão com o banco de dados
+void close_db(sqlite3 *db);
 
 // Checa se houve algum erro a partir do return code (rc) de uma operação
 int check_error(sqlite3 *db, int rc, char *err_msg);
 
 // Abre a conexão com o banco de dados
 sqlite3* open_db(char *path);
-
-// Fecha a conexão com o banco de dados
-void close_db(sqlite3 *db);
 
 // Inicializa o banco de dados
 int initialize_db(sqlite3 *db);
