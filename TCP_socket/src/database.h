@@ -4,8 +4,7 @@
 #include <sqlite3.h>
 #include <stdio.h>
 
-typedef struct
-{
+typedef struct {
     char* email;
     char* first_name;
     char* last_name;
