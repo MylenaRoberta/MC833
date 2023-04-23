@@ -15,11 +15,8 @@ typedef struct {
     char *location;
     char *major;
     int graduation_year;
-    char *ability_a;
-    char *ability_b;
-    char *ability_c;
+    char *abilities;
 } profile;
-
 
 // Fecha a conexão com o banco de dados
 int close_db(sqlite3 *db);
