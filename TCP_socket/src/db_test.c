@@ -7,9 +7,7 @@ void iterate_profile(profile p) {
     printf("RESIDÊNCIA: %s\n", p.location);
     printf("FORMAÇÃO: %s\n", p.major);
     printf("FORMATURA: %d\n", p.graduation_year);
-    printf("HABILIDADE_A: %s\n", p.ability_a);
-    printf("HABILIDADE_B: %s\n", p.ability_b);
-    printf("HABILIDADE_C: %s\n", p.ability_c);
+    printf("HABILIDADES: %s\n", p.abilities);
 }
 
 void iterate_profiles(profile ps[]) {
@@ -43,9 +41,7 @@ int main(void) {
     dummy.location = "None";
     dummy.major = "Ciência da Computação";
     dummy.graduation_year = 2018;
-    dummy.ability_a = "None";
-    dummy.ability_b = "Computação em Nuvem";
-    dummy.ability_c = "Internet das Coisas";
+    dummy.abilities = "None, Computação em Nuvem, Internet das Coisas";
 
     sqlite3 *db = open_db(path);
     initialize_db(db);

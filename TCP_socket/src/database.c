@@ -40,9 +40,7 @@ int initialize_db(sqlite3 *db) {
                   "   location TEXT,"
                   "   major TEXT,"
                   "   graduation_year INT,"
-                  "   ability_a TEXT,"
-                  "   ability_b TEXT,"
-                  "   ability_c TEXT"
+                  "   abilities TEXT"
                   ");"
                   "INSERT INTO Profiles VALUES("
                   "   'maria_souza@gmail.com',"
@@ -51,9 +49,97 @@ int initialize_db(sqlite3 *db) {
                   "   'Campinas',"
                   "   'Ciência da Computação',"
                   "   2018,"
-                  "   'Ciência de Dados',"
-                  "   'Internet das Coisas',"
-                  "   'Computação em Nuvem'"
+                  "   'Ciência de Dados, Internet das Coisas, Computação em Nuvem'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'ana.oliveira@hotmail.com',"
+                  "   'Ana',"
+                  "   'Oliveira',"
+                  "   'São Paulo',"
+                  "   'Engenharia de Computação',"
+                  "   2015,"
+                  "   'Desenvolvimento de Software, Inteligência Artificial, Realidade Virtual'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'gustavo_santos@gmail.com',"
+                  "   'Gustavo',"
+                  "   'Santos',"
+                  "   'Belo Horizonte',"
+                  "   'Sistemas de Informação',"
+                  "   2017,"
+                  "   'Segurança da Informação, Redes de Computadores, Programação em Python'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'felipelima@yahoo.com',"
+                  "   'Felipe',"
+                  "   'Lime',"
+                  "   'Recife',"
+                  "   'Ciência da Computação',"
+                  "   2019,"
+                  "   'Desenvolvimento Web, Banco de Dados, Programação em Java'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'juliana.fernandes@outlook.com',"
+                  "   'Juliana',"
+                  "   'Fernandes',"
+                  "   'Porto Alegre',"
+                  "   'Engenharia de Software',"
+                  "   2016,"
+                  "   'Arquitetura de Software, Testes de Software, Métodos Ágeis'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'rafael_silva@gmail.com',"
+                  "   'Rafael',"
+                  "   'Silva',"
+                  "   'Rio de Janeiro',"
+                  "   'Ciência da Computação',"
+                  "   2020,"
+                  "   'Desenvolvimento Mobile, Programação em Kotlin, Design de Interfaces'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'lucas.santos@uol.com.br',"
+                  "   'Lucas',"
+                  "   'Santos',"
+                  "   'Salvador',"
+                  "   'Engenharia de Computação',"
+                  "   2017,"
+                  "   'Desenvolvimento de Jogos, Realidade Virtual, Programação em C#'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'camilaalmeida@gmail.com',"
+                  "   'Camila',"
+                  "   'Almeida',"
+                  "   'Brasília',"
+                  "   'Ciência da Computação',"
+                  "   2019,"
+                  "   'Computação Gráfica, Visualização de Dados, Programação em R'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'pedro.barbosa@yahoo.com',"
+                  "   'Pedro',"
+                  "   'Barbosa',"
+                  "   'Fortaleza',"
+                  "   'Sistemas de Informação',"
+                  "   2016,"
+                  "   'Programação em PHP, Banco de Dados, Desenvolvimento Web'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'vanessa.gomes@hotmail.com',"
+                  "   'Vanessa',"
+                  "   'Gomes',"
+                  "   'Belém',"
+                  "   'Engenharia de Software',"
+                  "   2018,"
+                  "   'Qualidade de Software, Gerenciamento de Projetos de Software, Métodos Ágeis'"
+                  ");"
+                  "INSERT INTO Profiles VALUES("
+                  "   'rafaelacosta@gmail.com',"
+                  "   'Rafaela',"
+                  "   'Costa',"
+                  "   'Florianópolis',"
+                  "   'Ciência da Computação',"
+                  "   2021,"
+                  "   'Computação Quântica, Segurança da Informação, Programação em Python'"
                   ");";
 
     // Run the query
@@ -77,9 +163,7 @@ void desalocate_memory(profile ps[]) {
             free(ps[i].last_name);
             free(ps[i].location);
             free(ps[i].major);
-            free(ps[i].ability_a);
-            free(ps[i].ability_b);
-            free(ps[i].ability_c);
+            free(ps[i].abilities);
             
             profile p = {NULL};
             ps[i] = p;
@@ -126,16 +210,8 @@ void get_all_profiles(sqlite3 *db, profile ps[]) {
         ps[index].graduation_year = sqlite3_column_int(stmt, 5);
 
         col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].ability_a = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_a, col);
-
-        col = (char*)sqlite3_column_text(stmt, 7);
-        ps[index].ability_b = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_b, col);
-
-        col = (char*)sqlite3_column_text(stmt, 8);
-        ps[index].ability_c = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_c, col);
+        ps[index].abilities = malloc(strlen(col)+1);
+        strcpy(ps[index].abilities, col);
 
         index++;
     }
@@ -184,16 +260,8 @@ void get_profile(sqlite3 *db, profile ps[], char *email) {
         ps[index].graduation_year = sqlite3_column_int(stmt, 5);
 
         col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].ability_a = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_a, col);
-
-        col = (char*)sqlite3_column_text(stmt, 7);
-        ps[index].ability_b = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_b, col);
-
-        col = (char*)sqlite3_column_text(stmt, 8);
-        ps[index].ability_c = malloc(strlen(col)+1);
-        strcpy(ps[index].ability_c, col);
+        ps[index].abilities = malloc(strlen(col)+1);
+        strcpy(ps[index].abilities, col);
     }
     
     // Finalize the statement
@@ -236,15 +304,16 @@ void get_profiles_from_major(sqlite3 *db, profile ps[], char *major) {
 void get_profiles_from_ability(sqlite3 *db, profile ps[], char *ability) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
-                  "WHERE (ability_a = ? OR ability_b = ? OR ability_c = ?)";
+                  "WHERE abilities LIKE ?";
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     
     // Bind the parameters values to the prepared statement
-    for (int i = 0; i < 3; i++) {
-        sqlite3_bind_text(stmt, i+1, ability, -1, SQLITE_STATIC);
-    }
+    char *op = "%";
+    char *param = malloc(strlen(ability)+3);
+    sprintf(param, "%s%s%s", op, ability, op);
+    sqlite3_bind_text(stmt, 1, param, -1, SQLITE_STATIC);
 
     // Prepare the profiles array
     char *col;
@@ -266,6 +335,7 @@ void get_profiles_from_ability(sqlite3 *db, profile ps[], char *ability) {
     
     // Finalize the statement
     sqlite3_finalize(stmt);
+    free(param);
 }
 
 void get_profiles_from_graduation_year(sqlite3 *db, profile ps[], int year) {
@@ -309,7 +379,7 @@ int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_stmt *stmt;
 
     int ret = 0;
-    char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?)";
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -321,9 +391,7 @@ int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_bind_text(stmt, 4, new_profile.location, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 5, new_profile.major, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, new_profile.graduation_year);
-    sqlite3_bind_text(stmt, 7, new_profile.ability_a, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 8, new_profile.ability_b, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 9, new_profile.ability_c, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 7, new_profile.abilities, -1, SQLITE_STATIC);
 
     // Evaluate the statement
     if (sqlite3_step(stmt) == SQLITE_DONE) {    
