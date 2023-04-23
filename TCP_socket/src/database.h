@@ -4,21 +4,20 @@
 #include <sqlite3.h>
 #include <stdio.h>
 
-typedef struct {
+typedef struct Profile {
     char* email;
     char* first_name;
     char* last_name;
     char* location;
     char* major;
     int graduation_year;
-    char* abilities;
+    char* ability_a;
+    char* ability_b;
+    char* ability_c;
 } profile;
 
 // Fecha a conexão com o banco de dados
-void close_db(sqlite3 *db);
-
-// Checa se houve algum erro a partir do return code (rc) de uma operação
-int check_error(sqlite3 *db, int rc, char *err_msg);
+int close_db(sqlite3 *db);
 
 // Abre a conexão com o banco de dados
 sqlite3* open_db(char *path);
