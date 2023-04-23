@@ -69,35 +69,64 @@ int initialize_db(sqlite3 *db) {
     return 0;
 }
 
-void get_all_profiles(sqlite3 *db) {
+void get_all_profiles(sqlite3 *db, profile ps[]) {
     sqlite3_stmt *stmt;
     char *query = "SELECT * FROM Profiles";
 
+    // Prepare the profiles array
+    int index = 0;
+    profile p = {NULL};
+    
+    for (int i = 0; i < 10; i++) {
+        ps[i] = p; // Dummy profile
+    }
+
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
-    
+
     // Evaluate the statement
     while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        printf("GET_ALL: ");
-        printf("%s : ", sqlite3_column_text(stmt, 0));
-        printf("%s : ", sqlite3_column_text(stmt, 1));
-        printf("%s : ", sqlite3_column_text(stmt, 2));
-        printf("%s : ", sqlite3_column_text(stmt, 3));
-        printf("%s : ", sqlite3_column_text(stmt, 4));
-        printf("%s : ", sqlite3_column_text(stmt, 5));
-        printf("%s : ", sqlite3_column_text(stmt, 6));
-        printf("%s : ", sqlite3_column_text(stmt, 7));
-        printf("%s\n", sqlite3_column_text(stmt, 8));
+        ps[index].email = (char*)sqlite3_column_text(stmt, 0);
+        ps[index].first_name = (char*)sqlite3_column_text(stmt, 1);
+        ps[index].last_name = (char*)sqlite3_column_text(stmt, 2);
+        ps[index].location = (char*)sqlite3_column_text(stmt, 3);
+        ps[index].major = (char*)sqlite3_column_text(stmt, 4);
+        ps[index].graduation_year = sqlite3_column_int(stmt, 5);
+        ps[index].ability_a = (char*)sqlite3_column_text(stmt, 6);
+        ps[index].ability_b = (char*)sqlite3_column_text(stmt, 7);
+        ps[index].ability_c = (char*)sqlite3_column_text(stmt, 8);
+
+        printf("EMAIL: %s\n", ps[index].email);
+        printf("NOME: %s\n", ps[index].first_name);
+        printf("SOBRENOME: %s\n", ps[index].last_name);
+        printf("RESIDÊNCIA: %s\n", ps[index].location);
+        printf("FORMAÇÃO: %s\n", ps[index].major);
+        printf("FORMATURA: %d\n", ps[index].graduation_year);
+        printf("HABILIDADE_A: %s\n", ps[index].ability_a);
+        printf("HABILIDADE_B: %s\n", ps[index].ability_b);
+        printf("HABILIDADE_C: %s\n", ps[index].ability_c);
+
+        index++;
     }
-    
+
     // Finalize the statement
     sqlite3_finalize(stmt);
 }
 
-void get_profiles_from_major(sqlite3 *db, char *major) {
+void get_profiles_from_major(sqlite3 *db, profile ps[], char *major) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE major = ?";
+
+    // Prepare the profiles array
+    int index = 0;
+    profile p;
+    
+    p.email = NULL; // Dummy profile
+
+    for (int i = 0; i < 10; i++) {
+        ps[i] = p;
+    }
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -107,19 +136,32 @@ void get_profiles_from_major(sqlite3 *db, char *major) {
 
     // Evaluate the statement
     while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        printf("FROM_MAJOR: ");
-        printf("%s : ", sqlite3_column_text(stmt, 0));
-        printf("%s\n", sqlite3_column_text(stmt, 1));
+        p.email = (unsigned char *)sqlite3_column_text(stmt, 0);
+        p.first_name = (unsigned char *)sqlite3_column_text(stmt, 1);
+
+        // Insert the profile in the array
+        ps[index] = p;
+        index++;
     }
     
     // Finalize the statement
     sqlite3_finalize(stmt);
 }
 
-void get_profiles_from_ability(sqlite3 *db, char *ability) {
+void get_profiles_from_ability(sqlite3 *db, profile ps[], char *ability) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE (ability_a = ? OR ability_b = ? OR ability_c = ?)";
+    
+    // Prepare the profiles array
+    int index = 0;
+    profile p;
+    
+    p.email = NULL; // Dummy profile
+
+    for (int i = 0; i < 10; i++) {
+        ps[i] = p;
+    }
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -131,19 +173,32 @@ void get_profiles_from_ability(sqlite3 *db, char *ability) {
 
     // Evaluate the statement
     while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        printf("FROM_ABILITY: ");
-        printf("%s : ", sqlite3_column_text(stmt, 0));
-        printf("%s\n", sqlite3_column_text(stmt, 1));
+        p.email = (unsigned char *)sqlite3_column_text(stmt, 0);
+        p.first_name = (unsigned char *)sqlite3_column_text(stmt, 1);
+
+        // Insert the profile in the array
+        ps[index] = p;
+        index++;
     }
     
     // Finalize the statement
     sqlite3_finalize(stmt);
 }
 
-void get_profiles_from_graduation_year(sqlite3 *db, int year) {
+void get_profiles_from_graduation_year(sqlite3 *db, profile ps[], int year) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name, major FROM Profiles "
                   "WHERE graduation_year = ?";
+
+    // Prepare the profiles array
+    int index = 0;
+    profile p;
+    
+    p.email = NULL; // Dummy profile
+
+    for (int i = 0; i < 10; i++) {
+        ps[i] = p;
+    }
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -153,19 +208,26 @@ void get_profiles_from_graduation_year(sqlite3 *db, int year) {
 
     // Evaluate the statement
     while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        printf("FROM_YEAR: ");
-        printf("%s : ", sqlite3_column_text(stmt, 0));
-        printf("%s : ", sqlite3_column_text(stmt, 1));
-        printf("%s\n", sqlite3_column_text(stmt, 2));
+        p.email = (unsigned char *)sqlite3_column_text(stmt, 0);
+        p.first_name = (unsigned char *)sqlite3_column_text(stmt, 1);
+        p.major = (unsigned char *)sqlite3_column_text(stmt, 2);
+
+        // Insert the profile in the array
+        ps[index] = p;
+        index++;
     }
     
     // Finalize the statement
     sqlite3_finalize(stmt);
 }
 
-void get_profile(sqlite3 *db, char *email) {
+profile get_profile(sqlite3 *db, char *email) {
     sqlite3_stmt *stmt;
     char *query = "SELECT * FROM Profiles WHERE email = ?";
+
+    // Prepare the profile struct
+    profile p;
+    p.email = NULL;
 
     // Compile the query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -175,23 +237,26 @@ void get_profile(sqlite3 *db, char *email) {
 
     // Evaluate the statement
     if (sqlite3_step(stmt) == SQLITE_ROW) {    
-        printf("FROM_EMAIL: ");
-        printf("%s : ", sqlite3_column_text(stmt, 0));
-        printf("%s : ", sqlite3_column_text(stmt, 1));
-        printf("%s : ", sqlite3_column_text(stmt, 2));
-        printf("%s : ", sqlite3_column_text(stmt, 3));
-        printf("%s : ", sqlite3_column_text(stmt, 4));
-        printf("%s : ", sqlite3_column_text(stmt, 5));
-        printf("%s\n", sqlite3_column_text(stmt, 6));
+        p.email = (char*)sqlite3_column_text(stmt, 0);
+        p.first_name = (char*)sqlite3_column_text(stmt, 1);
+        p.last_name = (char*)sqlite3_column_text(stmt, 2);
+        p.location = (char*)sqlite3_column_text(stmt, 3);
+        p.major = (char*)sqlite3_column_text(stmt, 4);
+        p.graduation_year = sqlite3_column_int(stmt, 5);
+        p.ability_a = (char*)sqlite3_column_text(stmt, 6);
+        p.ability_b = (char*)sqlite3_column_text(stmt, 7);
+        p.ability_c = (char*)sqlite3_column_text(stmt, 8);
     }
     
     // Finalize the statement
     sqlite3_finalize(stmt);
+    return p;
 }
 
 int register_profile(sqlite3 *db, profile new_profile) {
-    int ret = 0;
     sqlite3_stmt *stmt;
+
+    int ret = 0;
     char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     // Compile the query
@@ -222,8 +287,9 @@ int register_profile(sqlite3 *db, profile new_profile) {
 }
 
 int remove_profile(sqlite3 *db, char* email) {
-    int ret = 0;
     sqlite3_stmt *stmt;
+
+    int ret = 0;
     char *query = "DELETE FROM Profiles WHERE email = ?";
 
     // Compile the query
