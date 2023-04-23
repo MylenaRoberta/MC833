@@ -13,12 +13,15 @@ void iterate_profile(profile p) {
 }
 
 void iterate_profiles(profile ps[]) {
-    for (int i = 0; i < 10; i++) {
+    printf("\n");
+
+    for (int i = 0; i < PROFILES; i++) {
         if (ps[i].email != NULL) {
             printf("-------------------------------------------------\n");
             iterate_profile(ps[i]);
             printf("-------------------------------------------------\n");
         } else {
+            printf("\n");
             break;
         }
     }
@@ -26,8 +29,13 @@ void iterate_profiles(profile ps[]) {
 
 int main(void) {
     char *path = "../data/profiles.db";
-    profile p, dummy;
-    profile ps[10];
+    profile dummy;
+    profile p = {NULL}, ps[PROFILES];
+    
+    // Initialize the profiles array
+    for (int i = 0; i < PROFILES; i++) {
+        ps[i] = p; // Dummy profile
+    }
 
     dummy.email = "jane_doe.com";
     dummy.first_name = "Jane";
@@ -36,35 +44,49 @@ int main(void) {
     dummy.major = "Ciência da Computação";
     dummy.graduation_year = 2018;
     dummy.ability_a = "None";
-    dummy.ability_b = "None";
+    dummy.ability_b = "Computação em Nuvem";
     dummy.ability_c = "Internet das Coisas";
 
     sqlite3 *db = open_db(path);
     initialize_db(db);
 
-    /* // Teste das operações
-    get_all_profiles(db);
+    // Teste das operações
+    get_all_profiles(db, ps);
+    iterate_profiles(ps);
 
     register_profile(db, dummy);
-    get_all_profiles(db);
-    remove_profile(db, "jane_doe.com");
+    get_all_profiles(db, ps);
+    iterate_profiles(ps);
 
-    get_profiles_from_major(db, "Ciência da Computação");
-    get_profiles_from_ability(db, "Computação em Nuvem");
-    get_profiles_from_ability(db, "Ciência de Dados");
-    get_profiles_from_graduation_year(db, 2018);
-    get_profile(db, "maria_souza@gmail.com");
+    printf("--- major: Ciência da Computação\n");
+    get_profiles_from_major(db, ps, "Ciência da Computação");
+    iterate_profiles(ps);
+
+    printf("--- ability: Computação em Nuvem\n");
+    get_profiles_from_ability(db, ps, "Computação em Nuvem");
+    iterate_profiles(ps);
+
+    printf("--- ability: Ciência de Dados\n");
+    get_profiles_from_ability(db, ps, "Ciência de Dados");
+    iterate_profiles(ps);
+
+    printf("--- grad_year: 2018\n");
+    get_profiles_from_graduation_year(db, ps, 2018);
+    iterate_profiles(ps);
+
+    printf("--- email: maria_souza@gmail.com\n");
+    get_profile(db, ps, "maria_souza@gmail.com");
+    iterate_profiles(ps);
 
     remove_profile(db, "maria_souza@gmail.com");
-    get_all_profiles(db);
+    get_all_profiles(db, ps);
+    iterate_profiles(ps);
 
+    remove_profile(db, "maria_souza@gmail.com");
     register_profile(db, dummy);
-    get_all_profiles(db);
-    */
 
     get_all_profiles(db, ps);
     iterate_profiles(ps);
-    iterate_profile(get_profile(db, "maria_souza@gmail.com"));
 
     close_db(db);
 
