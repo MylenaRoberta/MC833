@@ -186,8 +186,7 @@ int main(void)
           // Esse trecho só é executado pelos processos filhos
             int len, numbytes;
             char buf[MAXDATASIZE]; // Buffer para receber mensagem
-
-            close(socket_fd); // O socket que aceita conexões deve ser fechado para os processos filhos
+            close(socket_fd);      // O socket que aceita conexões deve ser fechado para os processos filhos
 
             if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo cliente
             {
