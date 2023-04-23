@@ -9,11 +9,30 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define ADMIN 1
+
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
 #define PORT "8330" // Porta do servidor
 
 #define MAXDATASIZE 1025 // Maior número de bytes que pode ser recebido por vez
+
+// Função que imprime as opções de query
+void print_menu()
+{
+    printf("Type the number of the query you wish to do:\n");
+    printf("1 - Get all profiles\n");
+    printf("2 - Get profile by email\n");
+    printf("3 - Get all people from a certain major\n");
+    printf("4 - Get all people that have a certain ability\n");
+    printf("5 - Get all people from a certain graduation year\n");
+
+#if ADMIN == 1
+    printf("6 - Register a new profile\n");
+    printf("7 - Delete a profile by email\n");
+
+#endif
+}
 
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
 void *get_in_addr(struct sockaddr *sa)
@@ -26,26 +45,20 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr); // IPv6
 }
 
-int main(int argc, char *argv[])
+int connect_to_server(char *server_ip, char *msg)
 {
-    int sockfd; // Socket que será criado
-    int numbytes;
+    int sockfd;                           // Socket que será criado
+    int numbytes;                         // Guardará o número de bytes recebidos
     char buf[MAXDATASIZE];                // Buffer para receber mensagem
     struct addrinfo hints, *servinfo, *p; // Guardarão informações de endereço
     int rv;
     char s[INET6_ADDRSTRLEN]; // Buffer que erá utilizado apenas em caso de IPv6 da parte do servidor
 
-    if (argc != 2) // TODO: Deve ser alterado para integrar com os projetos
-    {
-        fprintf(stderr, "usage: client hostname\n");
-        exit(1);
-    }
-
     memset(&hints, 0, sizeof hints); // Assegura que tudo será inicializado com zeros
     hints.ai_family = AF_UNSPEC;     // Não especifica se será IPv4 ou IPv6
     hints.ai_socktype = SOCK_STREAM; // Socket TCP
 
-    if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) // Pega informações sobre o endereço do servidor
+    if ((rv = getaddrinfo(server_ip, PORT, &hints, &servinfo)) != 0) // Pega informações sobre o endereço do servidor
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
@@ -82,14 +95,12 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
 
-    int len;
-    char msg[15] = "Query desejada";
-    len = strlen(msg);
+    int len = strlen(msg);
 
     if (send(sockfd, msg, len, 0) == -1)
     { // Envia mensagem ao servidor
         perror("send");
-        printf("Apenas %d bytes foram enviados com sucesso.\n", len);
+        printf("Only %d bytes were succesfully sent.\n", len);
     }
 
     // TODO: alterar para receber mais bytes
@@ -116,5 +127,94 @@ int main(int argc, char *argv[])
 
     close(sockfd); // Fecha o socket
 
+    return 0;
+}
+
+int main()
+{
+    char email[50], first_name[50], last_name[50], location[50], major[50], grad_year[4], abilities[100];
+    print_menu();
+    int option;
+    scanf("%d", &option);
+
+    char aux_string[MAXDATASIZE];
+
+    snprintf(aux_string, sizeof(int), "%d", option);
+    strcat(aux_string, "&");
+
+#if ADMIN != 1
+    if (option == 6 || option == 7)
+    {
+        printf("You do not have permission to do this!");
+    }
+#endif
+
+    switch (option)
+    {
+    case 1:
+        break;
+    case 2:
+        printf("Type the profile's email:\n");
+        scanf("%s", email);
+        strcat(aux_string, email);
+        break;
+    case 3:
+        printf("Type the profile's major:\n");
+        scanf("%s", major);
+        strcat(aux_string, major);
+        break;
+    case 4:
+        printf("Type the profile's ability:\n");
+        scanf("%s", abilities);
+        strcat(aux_string, abilities);
+        break;
+    case 5:
+        printf("Type the profile's graduation year:\n");
+        scanf("%s", grad_year);
+        strcat(aux_string, grad_year);
+        break;
+
+#if ADMIN == 1
+    case 6:
+        printf("Type the profile's email:\n");
+        scanf("%s", email);
+        strcat(aux_string, email);
+        strcat(aux_string, "&");
+        printf("Type the profile's first_name:\n");
+        scanf("%s", first_name);
+        strcat(aux_string, first_name);
+        strcat(aux_string, "&");
+        printf("Type the profile's last_name:\n");
+        scanf("%s", last_name);
+        strcat(aux_string, last_name);
+        strcat(aux_string, "&");
+        printf("Type the profile's location:\n");
+        scanf("%s", location);
+        strcat(aux_string, location);
+        strcat(aux_string, "&");
+        printf("Type the profile's major:\n");
+        scanf("%s", major);
+        strcat(aux_string, major);
+        strcat(aux_string, "&");
+        printf("Type the profile's graduation year:\n");
+        scanf("%s", grad_year);
+        strcat(aux_string, grad_year);
+        strcat(aux_string, "&");
+        printf("Type the profile's abilities separated by comma (like ability_a,abilityb,ability_c):\n");
+        scanf("%s", abilities);
+        strcat(aux_string, abilities);
+        break;
+    case 7:
+        printf("Type the profile's email:\n");
+        scanf("%s", email);
+        strcat(aux_string, email);
+        break;
+#endif
+
+    default:
+        break;
+    }
+
+    connect_to_server("localhost", aux_string);
     return 0;
 }

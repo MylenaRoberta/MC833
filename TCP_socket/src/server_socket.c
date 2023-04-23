@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include "database.h"
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -16,6 +17,24 @@
 #define PORT "8330"      // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
 #define BACKLOG 10       // Número máximo de conexões pendentes na fila
 #define MAXDATASIZE 1025 // Maior número de bytes que pode ser enviado por vez
+
+// Função que executa a query do cliente e retorna o seu resultado
+char *execute_query(char *query, sqlite3 *db)
+{
+    long query_option = strtol(query, NULL, 10);
+    printf("%ld\n", query_option);
+
+    char *query_result = "105"
+                         "'maria_souza@gmail.com',"
+                         "'Maria',"
+                         "'Souza',"
+                         "'Campinas',"
+                         "'Ciência da Computação',"
+                         "2018,"
+                         "'Ciência de Dados'";
+
+    return query_result;
+}
 
 // Função que garante que todos os bytes serão enviados
 int send_all(int dest_socket, char *msg, int *len)
@@ -69,6 +88,10 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(void)
 {
+    char *path = "../data/profiles.db";
+    sqlite3 *db = open_db(path);
+    initialize_db(db);
+
     int socket_fd; // Escuta conexões
     int new_fd;    // Novas conexões
     int yes = 1;
@@ -163,15 +186,7 @@ int main(void)
           // Esse trecho só é executado pelos processos filhos
             int len, numbytes;
             char buf[MAXDATASIZE]; // Buffer para receber mensagem
-            char msg[] = "1024"
-                         "'maria_souza@gmail.com',"
-                         "'Maria',"
-                         "'Souza',"
-                         "'Campinas',"
-                         "'Ciência da Computação',"
-                         "2018,"
-                         "'Ciência de Dados'";
-            len = strlen(msg);
+
             close(socket_fd); // O socket que aceita conexões deve ser fechado para os processos filhos
 
             if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo cliente
@@ -183,6 +198,10 @@ int main(void)
 
             printf("server: received '%s'\n", buf);
 
+            char *msg = execute_query(buf, db);
+            printf("%s\n", msg);
+            len = strlen(msg);
+
             if (send_all(new_fd, msg, &len) == -1)
             { // Envia mensagem ao cliente conectado a este processo filho
                 perror("send");
@@ -193,6 +212,8 @@ int main(void)
         }
         close(new_fd); // Processo pai deve fechar o socket destinado aos processos filhos
     }
+
+    close_db(db); // Encerra a conexão com o banco de dados
 
     return 0;
 }
