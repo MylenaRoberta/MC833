@@ -13,32 +13,36 @@
 
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
-#define PORT "8330" // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
-#define BACKLOG 10  // Número máximo de conexões pendentes na fila
-#define MAXDATASIZE 100 // Maior número de bytes que pode ser recebido por vez
+#define PORT "8330"      // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
+#define BACKLOG 10       // Número máximo de conexões pendentes na fila
+#define MAXDATASIZE 1025 // Maior número de bytes que pode ser enviado por vez
 
 // Função que garante que todos os bytes serão enviados
-int send_all(int dest_socket, char* msg, int* len){
-    int total = 0;          // Número de bytes enviados
-    int remainder = *len;   // Número de bytes restantes
+int send_all(int dest_socket, char *msg, int *len)
+{
+    int total = 0;        // Número de bytes enviados
+    int remainder = *len; // Número de bytes restantes
     int n;
 
-    while(total < *len) {
+    while (total < *len)
+    {
         n = send(dest_socket, msg + total, remainder, 0);
-        if (n == -1){
+        if (n == -1)
+        {
             break;
         }
         total += n;
         remainder -= n;
     }
 
-    *len = total;       // Número de bytes realmente enviados
+    *len = total; // Número de bytes realmente enviados
 
-    if (n == -1) {
-        return -1;      // Em caso de algum erro
+    if (n == -1)
+    {
+        return -1; // Em caso de algum erro
     }
 
-    return 0;           // Em caso de sucesso
+    return 0; // Em caso de sucesso
 }
 
 // Função responsável por finalizar processos zumbis
@@ -155,15 +159,22 @@ int main(void)
         printf("server: got connection from %s\n", s);
 
         if (!fork())
-        {                                                   // Cria processo filho para lidar com as conexões aceitas
-                                                            // Esse trecho só é executado pelos processos filhos
+        { // Cria processo filho para lidar com as conexões aceitas
+          // Esse trecho só é executado pelos processos filhos
             int len, numbytes;
-            char buf[MAXDATASIZE];                  // Buffer para receber mensagem
-            char msg[15] = "Hello, client!";
+            char buf[MAXDATASIZE]; // Buffer para receber mensagem
+            char msg[] = "1024"
+                         "'maria_souza@gmail.com',"
+                         "'Maria',"
+                         "'Souza',"
+                         "'Campinas',"
+                         "'Ciência da Computação',"
+                         "2018,"
+                         "'Ciência de Dados'";
             len = strlen(msg);
-            close(socket_fd);                       // O socket que aceita conexões deve ser fechado para os processos filhos
+            close(socket_fd); // O socket que aceita conexões deve ser fechado para os processos filhos
 
-            if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1)   // Recebe os bytes enviados pelo cliente
+            if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo cliente
             {
                 perror("recv");
                 exit(1);
@@ -172,7 +183,8 @@ int main(void)
 
             printf("server: received '%s'\n", buf);
 
-            if (send_all(new_fd, msg, &len) == -1) { // Envia mensagem ao cliente conectado a este processo filho
+            if (send_all(new_fd, msg, &len) == -1)
+            { // Envia mensagem ao cliente conectado a este processo filho
                 perror("send");
                 printf("Apenas %d bytes foram enviados com sucesso.\n", len);
             }

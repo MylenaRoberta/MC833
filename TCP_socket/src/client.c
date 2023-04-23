@@ -13,7 +13,7 @@
 
 #define PORT "8330" // Porta do servidor
 
-#define MAXDATASIZE 100 // Maior número de bytes que pode ser recebido por vez
+#define MAXDATASIZE 1025 // Maior número de bytes que pode ser recebido por vez
 
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
 void *get_in_addr(struct sockaddr *sa)
@@ -86,7 +86,8 @@ int main(int argc, char *argv[])
     char msg[15] = "Query desejada";
     len = strlen(msg);
 
-    if (send(sockfd, msg, len, 0) == -1) { // Envia mensagem ao servidor
+    if (send(sockfd, msg, len, 0) == -1)
+    { // Envia mensagem ao servidor
         perror("send");
         printf("Apenas %d bytes foram enviados com sucesso.\n", len);
     }
@@ -96,6 +97,17 @@ int main(int argc, char *argv[])
     {
         perror("recv");
         exit(1);
+    }
+
+    long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
+
+    while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
+    {
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
+        {
+            perror("recv");
+            exit(1);
+        }
     }
 
     buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
