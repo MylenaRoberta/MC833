@@ -18,20 +18,168 @@
 #define BACKLOG 10       // Número máximo de conexões pendentes na fila
 #define MAXDATASIZE 1025 // Maior número de bytes que pode ser enviado por vez
 
+// Função auxiliar que transforma o vetor de perfis em uma string
+void transform_profile_array(profile ps[], char *final_result)
+{
+    char result[MAXDATASIZE];
+    memset(result, 0, MAXDATASIZE);
+    char aux[MAXDATASIZE];
+
+    for (int i = 0; i < PROFILES; i++)
+    {
+        if (ps[i].email != NULL)
+        {
+            if (ps[i].email != NULL)
+            {
+                strcat(result, "EMAIL: ");
+                strcpy(aux, ps[i].email);
+                strcat(result, aux);
+            }
+
+            if (ps[i].first_name != NULL)
+            {
+                strcat(result, "\nNOME: ");
+                strcpy(aux, ps[i].first_name);
+                strcat(result, aux);
+            }
+
+            if (ps[i].last_name != NULL)
+            {
+                strcat(result, "\nSOBRENOME: ");
+                strcpy(aux, ps[i].last_name);
+                strcat(result, aux);
+            }
+
+            if (ps[i].location != NULL)
+            {
+                strcat(result, "\nRESIDÊNCIA: ");
+                strcpy(aux, ps[i].location);
+                strcat(result, aux);
+            }
+
+            if (ps[i].major != NULL)
+            {
+                strcat(result, "\nFORMAÇÃO: ");
+                strcpy(aux, ps[i].major);
+                strcat(result, aux);
+            }
+
+            if (ps[i].graduation_year != 0)
+            {
+                strcat(result, "\nFORMATURA: ");
+                snprintf(aux, 5, "%d", ps[i].graduation_year);
+                strcat(result, aux);
+            }
+
+            if (ps[i].ability_a != NULL)
+            {
+                strcat(result, "\nHABILIDADE_A: ");
+                strcpy(aux, ps[i].ability_a);
+                strcat(result, aux);
+            }
+
+            if (ps[i].ability_b != NULL)
+            {
+                strcat(result, "\nHABILIDADE_B: ");
+                strcpy(aux, ps[i].ability_b);
+                strcat(result, aux);
+            }
+            if (ps[i].ability_c != NULL)
+            {
+                strcat(result, "\nHABILIDADE_C: ");
+                strcpy(aux, ps[i].ability_c);
+                strcat(result, aux);
+                strcat(result, "\n\n");
+            }
+        }
+    }
+
+    int length = strlen(result);
+    snprintf(final_result, 20, "%d", length);
+    snprintf(final_result, 20, "%ld", length + strlen(final_result));
+    strcat(final_result, result);
+}
+
 // Função que executa a query do cliente e retorna o seu resultado
 char *execute_query(char *query, sqlite3 *db)
 {
+    char *email, *first_name, *last_name, *location, *major, *grad_year, *abilities;
+    int graduation_year;
     long query_option = strtol(query, NULL, 10);
-    printf("%ld\n", query_option);
 
-    char *query_result = "105"
-                         "'maria_souza@gmail.com',"
-                         "'Maria',"
-                         "'Souza',"
-                         "'Campinas',"
-                         "'Ciência da Computação',"
-                         "2018,"
-                         "'Ciência de Dados'";
+    profile p = {NULL}, ps[PROFILES], new_profile;
+
+    // Inicializa o vetor de perfis
+    for (int i = 0; i < PROFILES; i++)
+    {
+        ps[i] = p; // Perfil dummy
+    }
+
+    char *query_result = malloc(sizeof(char *));
+
+    switch (query_option)
+    {
+    case 1:
+        get_all_profiles(db, ps);
+        transform_profile_array(ps, query_result);
+        break;
+
+    case 2:
+        strtok(query, "&");
+        email = strtok(NULL, "&");
+        get_profile(db, ps, email);
+        transform_profile_array(ps, query_result);
+        break;
+
+    case 3:
+        strtok(query, "&");
+        major = strtok(NULL, "&");
+        get_profiles_from_major(db, ps, major);
+        transform_profile_array(ps, query_result);
+        break;
+
+    case 4:
+        strtok(query, "&");
+        abilities = strtok(NULL, "&");
+        get_profiles_from_ability(db, ps, abilities);
+        transform_profile_array(ps, query_result);
+        break;
+
+    case 5:
+        strtok(query, "&");
+        grad_year = strtok(NULL, "&");
+        graduation_year = atoi(grad_year);
+        get_profiles_from_graduation_year(db, ps, graduation_year);
+        transform_profile_array(ps, query_result);
+        break;
+
+    case 6:
+        strtok(query, "&");
+        new_profile.email = strtok(NULL, "&");
+        new_profile.first_name = strtok(NULL, "&");
+        new_profile.last_name = strtok(NULL, "&");
+        new_profile.location = strtok(NULL, "&");
+        new_profile.major = strtok(NULL, "&");
+        grad_year = strtok(NULL, "&");
+        new_profile.graduation_year = atoi(grad_year);
+        abilities = strtok(NULL, "&");
+
+        new_profile.ability_a = "CCCC";
+        new_profile.ability_b = "AAAAA";
+        new_profile.ability_c = "Adadsa";
+
+        snprintf(query_result, 20, "%d", register_profile(db, new_profile));
+        break;
+
+    case 7:
+        strtok(query, "&");
+        email = strtok(NULL, "&");
+        snprintf(query_result, 20, "%d", remove_profile(db, email));
+        break;
+
+    default:
+        break;
+    }
 
     return query_result;
 }
@@ -206,6 +354,7 @@ int main(void)
                 perror("send");
                 printf("Apenas %d bytes foram enviados com sucesso.\n", len);
             }
+            free(msg);
             close(new_fd);
             exit(0);
         }

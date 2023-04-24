@@ -160,12 +160,13 @@ int main()
         break;
     case 3:
         printf("Type the profile's major:\n");
-        scanf("%s", major);
+        scanf(" %[^\n]s", major);
+        printf("%s\n", major);
         strcat(aux_string, major);
         break;
     case 4:
         printf("Type the profile's ability:\n");
-        scanf("%s", abilities);
+        scanf(" %[^\n]s", abilities);
         strcat(aux_string, abilities);
         break;
     case 5:
@@ -193,7 +194,7 @@ int main()
         strcat(aux_string, location);
         strcat(aux_string, "&");
         printf("Type the profile's major:\n");
-        scanf("%s", major);
+        scanf(" %[^\n]s", major);
         strcat(aux_string, major);
         strcat(aux_string, "&");
         printf("Type the profile's graduation year:\n");
@@ -201,7 +202,7 @@ int main()
         strcat(aux_string, grad_year);
         strcat(aux_string, "&");
         printf("Type the profile's abilities separated by comma (like ability_a,abilityb,ability_c):\n");
-        scanf("%s", abilities);
+        scanf(" %[^\n]s", abilities);
         strcat(aux_string, abilities);
         break;
     case 7:
