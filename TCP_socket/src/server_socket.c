@@ -14,9 +14,9 @@
 
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
-#define PORT "8330"      // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
-#define BACKLOG 10       // Número máximo de conexões pendentes na fila
-#define MAXDATASIZE 1025 // Maior número de bytes que pode ser enviado por vez
+#define PORT "8330"       // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
+#define BACKLOG 10        // Número máximo de conexões pendentes na fila
+#define MAXDATASIZE 22025 // Maior número de bytes que pode ser enviado por vez
 
 // Função auxiliar que transforma o vetor de perfis em uma string
 void transform_profile_array(profile ps[], char *final_result)
@@ -71,23 +71,10 @@ void transform_profile_array(profile ps[], char *final_result)
                 strcat(result, aux);
             }
 
-            if (ps[i].ability_a != NULL)
+            if (ps[i].abilities != NULL)
             {
-                strcat(result, "\nHABILIDADE_A: ");
-                strcpy(aux, ps[i].ability_a);
-                strcat(result, aux);
-            }
-
-            if (ps[i].ability_b != NULL)
-            {
-                strcat(result, "\nHABILIDADE_B: ");
-                strcpy(aux, ps[i].ability_b);
-                strcat(result, aux);
-            }
-            if (ps[i].ability_c != NULL)
-            {
-                strcat(result, "\nHABILIDADE_C: ");
-                strcpy(aux, ps[i].ability_c);
+                strcat(result, "\nHABILIDADES: ");
+                strcpy(aux, ps[i].abilities);
                 strcat(result, aux);
                 strcat(result, "\n\n");
             }
@@ -162,11 +149,7 @@ char *execute_query(char *query, sqlite3 *db)
         new_profile.major = strtok(NULL, "&");
         grad_year = strtok(NULL, "&");
         new_profile.graduation_year = atoi(grad_year);
-        abilities = strtok(NULL, "&");
-
-        new_profile.ability_a = "CCCC";
-        new_profile.ability_b = "AAAAA";
-        new_profile.ability_c = "Adadsa";
+        new_profile.abilities = strtok(NULL, "&");
 
         snprintf(query_result, 20, "%d", register_profile(db, new_profile));
         break;
@@ -352,7 +335,7 @@ int main(void)
             if (send_all(new_fd, msg, &len) == -1)
             { // Envia mensagem ao cliente conectado a este processo filho
                 perror("send");
-                printf("Apenas %d bytes foram enviados com sucesso.\n", len);
+                printf("Only %d bytes were successfully sent.\n", len);
             }
             free(msg);
             close(new_fd);

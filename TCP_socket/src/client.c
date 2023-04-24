@@ -15,7 +15,7 @@
 
 #define PORT "8330" // Porta do servidor
 
-#define MAXDATASIZE 1025 // Maior número de bytes que pode ser recebido por vez
+#define MAXDATASIZE 22025 // Maior número de bytes que pode ser recebido por vez
 
 // Função que imprime as opções de query
 void print_menu()
@@ -100,7 +100,7 @@ int connect_to_server(char *server_ip, char *msg)
     if (send(sockfd, msg, len, 0) == -1)
     { // Envia mensagem ao servidor
         perror("send");
-        printf("Only %d bytes were succesfully sent.\n", len);
+        printf("Only %d bytes were successfully sent.\n", len);
     }
 
     // TODO: alterar para receber mais bytes
