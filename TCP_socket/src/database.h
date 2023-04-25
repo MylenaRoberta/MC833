@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PROFILES 10
+#define PROFILES 20
 
-typedef struct {
+typedef struct
+{
     char *email;
     char *first_name;
     char *last_name;
@@ -22,7 +23,7 @@ typedef struct {
 int close_db(sqlite3 *db);
 
 // Abre a conexão com o banco de dados
-sqlite3* open_db(char *path);
+sqlite3 *open_db(char *path);
 
 // Inicializa o banco de dados
 int initialize_db(sqlite3 *db);
@@ -49,6 +50,6 @@ void get_profiles_from_graduation_year(sqlite3 *db, profile ps[], int year);
 int register_profile(sqlite3 *db, profile new_profile);
 
 // Função que remove um perfil a partir de seu email
-int remove_profile(sqlite3 *db, char* email);
+int remove_profile(sqlite3 *db, char *email);
 
 #endif
