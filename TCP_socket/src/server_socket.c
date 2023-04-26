@@ -31,7 +31,7 @@ void transform_profile_array(profile ps[], char *final_result)
         {
             if (ps[i].email != NULL)
             {
-                strcat(result, "EMAIL: ");
+                strcat(result, "\nEMAIL: ");
                 strcpy(aux, ps[i].email);
                 strcat(result, aux);
             }
@@ -76,8 +76,9 @@ void transform_profile_array(profile ps[], char *final_result)
                 strcat(result, "\nHABILIDADES: ");
                 strcpy(aux, ps[i].abilities);
                 strcat(result, aux);
-                strcat(result, "\n\n");
+                strcat(result, "\n");
             }
+            strcat(result, "\n");
         }
     }
 
@@ -329,7 +330,6 @@ int main(void)
             printf("server: received '%s'\n", buf);
 
             char *msg = execute_query(buf, db);
-            printf("%s\n", msg);
             len = strlen(msg);
 
             if (send_all(new_fd, msg, &len) == -1)
