@@ -1,29 +1,39 @@
 #include "database.h"
 
-void iterate_profile(profile p) {
-    printf("EMAIL: %s\n", p.email);
-    printf("NOME: %s\n", p.first_name);
-    printf("SOBRENOME: %s\n", p.last_name);
-    printf("RESIDÊNCIA: %s\n", p.location);
-    printf("FORMAÇÃO: %s\n", p.major);
-    printf("FORMATURA: %d\n", p.graduation_year);
-    printf("HABILIDADES: %s\n", p.abilities);
-}
+// void iterate_profile(result **res) {
+//     // printf("EMAIL: %s\n", p.email);
+//     // printf("NOME: %s\n", p.first_name);
+//     // printf("SOBRENOME: %s\n", p.last_name);
+//     // printf("RESIDÊNCIA: %s\n", p.location);
+//     // printf("FORMAÇÃO: %s\n", p.major);
+//     // printf("FORMATURA: %d\n", p.graduation_year);
+//     // printf("HABILIDADES: %s\n", p.abilities);
 
-void iterate_profiles(profile ps[]) {
-    printf("\n");
+//     result *r;
 
-    for (int i = 0; i < PROFILES; i++) {
-        if (ps[i].email != NULL) {
-            printf("-------------------------------------------------\n");
-            iterate_profile(ps[i]);
-            printf("-------------------------------------------------\n");
-        } else {
-            printf("\n");
-            break;
-        }
-    }
-}
+//     while(*res) {
+//         r = *res;
+//         printf("%s\n", r->row);
+//         *res = r->next;
+//         free(r->row);
+//         free(r);
+//     }
+// }
+
+// void iterate_profiles(profile ps[]) {
+//     printf("\n");
+
+//     for (int i = 0; i < PROFILES; i++) {
+//         if (ps[i].email != NULL) {
+//             printf("-------------------------------------------------\n");
+//             iterate_profile(ps[i]);
+//             printf("-------------------------------------------------\n");
+//         } else {
+//             printf("\n");
+//             break;
+//         }
+//     }
+// }
 
 int main(void) {
     char *path = "../data/profiles.db";
@@ -44,10 +54,12 @@ int main(void) {
     dummy.abilities = "None, Computação em Nuvem, Internet das Coisas";
 
     sqlite3 *db = open_db(path);
+    result *res;
     initialize_db(db);
 
     // Teste das operações
-    get_all_profiles(db, ps);
+    get_all_profiles(db, &res);
+    print_result(&res);
     // iterate_profiles(ps);
 
     // register_profile(db, dummy);
