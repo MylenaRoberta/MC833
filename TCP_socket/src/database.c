@@ -139,6 +139,17 @@ void desalocate_memory(profile ps[]) {
     }
 }
 
+void free_result(result **res) {
+    result *r;
+
+    while(*res) {
+        r = *res;
+        *res = r->next;
+        free(r->row);
+        free(r);
+    }
+}
+
 void get_all_profiles(sqlite3 *db, profile ps[]) {
     sqlite3_stmt *stmt;
     char *query = "SELECT * FROM Profiles";
@@ -149,35 +160,35 @@ void get_all_profiles(sqlite3 *db, profile ps[]) {
     // Prepara o array de perfis
     char *col;
     int index = 0;
-    desalocate_memory(ps);
+    // desalocate_memory(ps);
+
+    result *res;
+    free_result(&res);
+    res = malloc(sizeof(result));
 
     // Avalia a declaração
     while (sqlite3_step(stmt) == SQLITE_ROW) {   
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+        char *email = (char*)sqlite3_column_text(stmt, 0);
+        char *first_name = (char*)sqlite3_column_text(stmt, 1);
+        char *last_name = (char*)sqlite3_column_text(stmt, 2);
+        char *location = (char*)sqlite3_column_text(stmt, 3);
+        char *major = (char*)sqlite3_column_text(stmt, 4);
+        char *grad_year = (char*)sqlite3_column_text(stmt, 5);
+        char *abilities = (char*)sqlite3_column_text(stmt, 6);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        char *str = malloc(strlen(email) + strlen(first_name) 
+                    + strlen(last_name) + strlen(location) 
+                    + strlen(major) + strlen(grad_year)
+                    + strlen(abilities) + 8);
 
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].last_name = malloc(strlen(col)+1);
-        strcpy(ps[index].last_name, col);
+        sprintf(str, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
+                email, first_name, last_name, location,
+                major, grad_year, abilities);
 
-        col = (char*)sqlite3_column_text(stmt, 3);
-        ps[index].location = malloc(strlen(col)+1);
-        strcpy(ps[index].location, col);
+        // ps[index].email = malloc(strlen(col)+1);
+        // strcpy(ps[index].email, col);
 
-        col = (char*)sqlite3_column_text(stmt, 4);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        ps[index].graduation_year = sqlite3_column_int(stmt, 5);
-
-        col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].abilities = malloc(strlen(col)+1);
-        strcpy(ps[index].abilities, col);
+        printf("%s\n", str);
 
         index++;
     }

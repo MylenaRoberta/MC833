@@ -48,41 +48,41 @@ int main(void) {
 
     // Teste das operações
     get_all_profiles(db, ps);
-    iterate_profiles(ps);
+    // iterate_profiles(ps);
 
-    register_profile(db, dummy);
-    get_all_profiles(db, ps);
-    iterate_profiles(ps);
+    // register_profile(db, dummy);
+    // get_all_profiles(db, ps);
+    // iterate_profiles(ps);
 
-    printf("--- major: Ciência da Computação\n");
-    get_profiles_from_major(db, ps, "Ciência da Computação");
-    iterate_profiles(ps);
+    // printf("--- major: Ciência da Computação\n");
+    // get_profiles_from_major(db, ps, "Ciência da Computação");
+    // iterate_profiles(ps);
 
-    printf("--- ability: Computação em Nuvem\n");
-    get_profiles_from_ability(db, ps, "Computação em Nuvem");
-    iterate_profiles(ps);
+    // printf("--- ability: Computação em Nuvem\n");
+    // get_profiles_from_ability(db, ps, "Computação em Nuvem");
+    // iterate_profiles(ps);
 
-    printf("--- ability: Ciência de Dados\n");
-    get_profiles_from_ability(db, ps, "Ciência de Dados");
-    iterate_profiles(ps);
+    // printf("--- ability: Ciência de Dados\n");
+    // get_profiles_from_ability(db, ps, "Ciência de Dados");
+    // iterate_profiles(ps);
 
-    printf("--- grad_year: 2018\n");
-    get_profiles_from_graduation_year(db, ps, 2018);
-    iterate_profiles(ps);
+    // printf("--- grad_year: 2018\n");
+    // get_profiles_from_graduation_year(db, ps, 2018);
+    // iterate_profiles(ps);
 
-    printf("--- email: maria_souza@gmail.com\n");
-    get_profile(db, ps, "maria_souza@gmail.com");
-    iterate_profiles(ps);
+    // printf("--- email: maria_souza@gmail.com\n");
+    // get_profile(db, ps, "maria_souza@gmail.com");
+    // iterate_profiles(ps);
 
-    remove_profile(db, "maria_souza@gmail.com");
-    get_all_profiles(db, ps);
-    iterate_profiles(ps);
+    // remove_profile(db, "maria_souza@gmail.com");
+    // get_all_profiles(db, ps);
+    // iterate_profiles(ps);
 
-    remove_profile(db, "maria_souza@gmail.com");
-    register_profile(db, dummy);
+    // remove_profile(db, "maria_souza@gmail.com");
+    // register_profile(db, dummy);
 
-    get_all_profiles(db, ps);
-    iterate_profiles(ps);
+    // get_all_profiles(db, ps);
+    // iterate_profiles(ps);
 
     close_db(db);
 

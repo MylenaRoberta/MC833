@@ -8,8 +8,7 @@
 
 #define PROFILES 20
 
-typedef struct
-{
+typedef struct {
     char *email;
     char *first_name;
     char *last_name;
@@ -18,6 +17,11 @@ typedef struct
     int graduation_year;
     char *abilities;
 } profile;
+
+typedef struct {
+    char *row;
+    struct result *next;
+} result;
 
 // Fecha a conexão com o banco de dados
 int close_db(sqlite3 *db);
