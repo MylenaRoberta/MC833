@@ -190,44 +190,47 @@ int connect_to_server(char *server_ip)
 
     freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
 
-    char *msg = get_query();
-
-    if (msg == NULL)
+    while (1)
     {
-        return 1;
-    }
 
-    int len = strlen(msg);
+        char *msg = get_query();
 
-    if (send(sockfd, msg, len, 0) == -1)
-    { // Envia mensagem ao servidor
-        perror("send");
-        printf("Only %d bytes were successfully sent.\n", len);
-    }
+        if (msg == NULL)
+        {
+            break;
+        }
 
-    free(msg);
+        int len = strlen(msg);
 
-    // TODO: alterar para receber mais bytes
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
-    {
-        perror("recv");
-        exit(1);
-    }
+        if (send(sockfd, msg, len, 0) == -1)
+        { // Envia mensagem ao servidor
+            perror("send");
+            printf("Only %d bytes were successfully sent.\n", len);
+        }
 
-    long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
-
-    while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
-    {
+        // TODO: alterar para receber mais bytes
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
         {
             perror("recv");
             exit(1);
         }
+
+        long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
+
+        while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
+        {
+            if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
+            {
+                perror("recv");
+                exit(1);
+            }
+        }
+
+        buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
+
+        printf("client: received '%s'\n", buf);
+        free(msg);
     }
-
-    buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
-
-    printf("client: received '%s'\n", buf);
 
     close(sockfd); // Fecha o socket
 
@@ -236,8 +239,6 @@ int connect_to_server(char *server_ip)
 
 int main()
 {
-    while (connect_to_server("localhost") == 0)
-        ;
-
+    connect_to_server("localhost") == 0;
     return 0;
 }

@@ -89,7 +89,7 @@ void transform_profile_array(profile ps[], char *final_result)
 }
 
 // Função que executa a query do cliente e retorna o seu resultado
-char *execute_query(char *query, sqlite3 *db)
+char *execute_query(char *query, sqlite3 *db, char *query_result)
 {
     char *email, *first_name, *last_name, *location, *major, *grad_year, *abilities;
     int graduation_year;
@@ -102,8 +102,6 @@ char *execute_query(char *query, sqlite3 *db)
     {
         ps[i] = p; // Perfil dummy
     }
-
-    char *query_result = malloc(sizeof(char *));
 
     switch (query_option)
     {
@@ -164,8 +162,6 @@ char *execute_query(char *query, sqlite3 *db)
     default:
         break;
     }
-
-    return query_result;
 }
 
 // Função que garante que todos os bytes serão enviados
@@ -319,24 +315,30 @@ int main(void)
             int len, numbytes;
             char buf[MAXDATASIZE]; // Buffer para receber mensagem
             close(socket_fd);      // O socket que aceita conexões deve ser fechado para os processos filhos
+            char *msg = malloc(sizeof(char *));
 
-            if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo cliente
+            do // Recebe e envia mensagens enquanto o cliente não fechar o socket
             {
-                perror("recv");
-                exit(1);
-            }
-            buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
+                if ((numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo cliente
+                {
+                    perror("recv");
+                    exit(1);
+                }
+                buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
 
-            printf("server: received '%s'\n", buf);
+                printf("server: received '%s'\n", buf);
 
-            char *msg = execute_query(buf, db);
-            len = strlen(msg);
+                execute_query(buf, db, msg);
+                len = strlen(msg);
 
-            if (send_all(new_fd, msg, &len) == -1)
-            { // Envia mensagem ao cliente conectado a este processo filho
-                perror("send");
-                printf("Only %d bytes were successfully sent.\n", len);
-            }
+                if (send_all(new_fd, msg, &len) == -1)
+                { // Envia mensagem ao cliente conectado a este processo filho
+                    perror("send");
+                    printf("Only %d bytes were successfully sent.\n", len);
+                }
+
+            } while (numbytes != 0);
+
             free(msg);
             close(new_fd);
             exit(0);
