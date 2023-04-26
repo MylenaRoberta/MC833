@@ -315,7 +315,7 @@ int main(void)
             int len, numbytes;
             char buf[MAXDATASIZE]; // Buffer para receber mensagem
             close(socket_fd);      // O socket que aceita conexões deve ser fechado para os processos filhos
-            char *msg = malloc(sizeof(char *));
+            char msg[MAXDATASIZE];
 
             do // Recebe e envia mensagens enquanto o cliente não fechar o socket
             {
@@ -339,7 +339,6 @@ int main(void)
 
             } while (numbytes != 0);
 
-            free(msg);
             close(new_fd);
             exit(0);
         }
