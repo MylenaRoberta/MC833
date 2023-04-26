@@ -30,114 +30,24 @@ void print_menu()
 #if ADMIN == 1
     printf("6 - Register a new profile\n");
     printf("7 - Delete a profile by email\n");
-
 #endif
+
+    printf("0 - Quit\n");
 }
 
-// Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET)
-    {
-        return &(((struct sockaddr_in *)sa)->sin_addr); // IPv4
-    }
-
-    return &(((struct sockaddr_in6 *)sa)->sin6_addr); // IPv6
-}
-
-int connect_to_server(char *server_ip, char *msg)
-{
-    int sockfd;                           // Socket que será criado
-    int numbytes;                         // Guardará o número de bytes recebidos
-    char buf[MAXDATASIZE];                // Buffer para receber mensagem
-    struct addrinfo hints, *servinfo, *p; // Guardarão informações de endereço
-    int rv;
-    char s[INET6_ADDRSTRLEN]; // Buffer que erá utilizado apenas em caso de IPv6 da parte do servidor
-
-    memset(&hints, 0, sizeof hints); // Assegura que tudo será inicializado com zeros
-    hints.ai_family = AF_UNSPEC;     // Não especifica se será IPv4 ou IPv6
-    hints.ai_socktype = SOCK_STREAM; // Socket TCP
-
-    if ((rv = getaddrinfo(server_ip, PORT, &hints, &servinfo)) != 0) // Pega informações sobre o endereço do servidor
-    {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 1;
-    }
-
-    for (p = servinfo; p != NULL; p = p->ai_next) // Faz um loop pelos resultados e conecta com o primeiro possível
-    {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, // Erro ao criar socket do cliente
-                             p->ai_protocol)) == -1)
-        {
-            perror("client: socket");
-            continue;
-        }
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) // Erro ao conectar
-        {
-            close(sockfd);
-            perror("client: connect");
-            continue;
-        }
-
-        break;
-    }
-
-    if (p == NULL)
-    {
-        fprintf(stderr, "client: failed to connect\n");
-        return 2;
-    }
-
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), // Obtém endereço do servidor, sendo IPv4 ou IPv6
-              s, sizeof s);
-    printf("client: connecting to %s\n", s);
-
-    freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
-
-    int len = strlen(msg);
-
-    if (send(sockfd, msg, len, 0) == -1)
-    { // Envia mensagem ao servidor
-        perror("send");
-        printf("Only %d bytes were successfully sent.\n", len);
-    }
-
-    // TODO: alterar para receber mais bytes
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
-    {
-        perror("recv");
-        exit(1);
-    }
-
-    long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
-
-    while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
-    {
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
-        {
-            perror("recv");
-            exit(1);
-        }
-    }
-
-    buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
-
-    printf("client: received '%s'\n", buf);
-
-    close(sockfd); // Fecha o socket
-
-    return 0;
-}
-
-int main()
+char *get_query()
 {
     char email[50], first_name[50], last_name[50], location[50], major[50], grad_year[4], abilities[100];
     print_menu();
     int option;
     scanf("%d", &option);
 
-    char aux_string[MAXDATASIZE];
+    if (option == 0)
+    {
+        return NULL;
+    }
+
+    char *aux_string = malloc(sizeof(char *));
 
     snprintf(aux_string, sizeof(int), "%d", option);
     strcat(aux_string, "&");
@@ -216,6 +126,118 @@ int main()
         break;
     }
 
-    connect_to_server("localhost", aux_string);
+    return aux_string;
+}
+
+// Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
+void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in *)sa)->sin_addr); // IPv4
+    }
+
+    return &(((struct sockaddr_in6 *)sa)->sin6_addr); // IPv6
+}
+
+int connect_to_server(char *server_ip)
+{
+    int sockfd;                           // Socket que será criado
+    int numbytes;                         // Guardará o número de bytes recebidos
+    char buf[MAXDATASIZE];                // Buffer para receber mensagem
+    struct addrinfo hints, *servinfo, *p; // Guardarão informações de endereço
+    int rv;
+    char s[INET6_ADDRSTRLEN]; // Buffer que erá utilizado apenas em caso de IPv6 da parte do servidor
+
+    memset(&hints, 0, sizeof hints); // Assegura que tudo será inicializado com zeros
+    hints.ai_family = AF_UNSPEC;     // Não especifica se será IPv4 ou IPv6
+    hints.ai_socktype = SOCK_STREAM; // Socket TCP
+
+    if ((rv = getaddrinfo(server_ip, PORT, &hints, &servinfo)) != 0) // Pega informações sobre o endereço do servidor
+    {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    for (p = servinfo; p != NULL; p = p->ai_next) // Faz um loop pelos resultados e conecta com o primeiro possível
+    {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, // Erro ao criar socket do cliente
+                             p->ai_protocol)) == -1)
+        {
+            perror("client: socket");
+            continue;
+        }
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) // Erro ao conectar
+        {
+            close(sockfd);
+            perror("client: connect");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL)
+    {
+        fprintf(stderr, "client: failed to connect\n");
+        return 2;
+    }
+
+    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), // Obtém endereço do servidor, sendo IPv4 ou IPv6
+              s, sizeof s);
+    printf("client: connecting to %s\n", s);
+
+    freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
+
+    char *msg = get_query();
+
+    if (msg == NULL)
+    {
+        return 1;
+    }
+
+    int len = strlen(msg);
+
+    if (send(sockfd, msg, len, 0) == -1)
+    { // Envia mensagem ao servidor
+        perror("send");
+        printf("Only %d bytes were successfully sent.\n", len);
+    }
+
+    free(msg);
+
+    // TODO: alterar para receber mais bytes
+    if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
+    {
+        perror("recv");
+        exit(1);
+    }
+
+    long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
+
+    while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
+    {
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
+        {
+            perror("recv");
+            exit(1);
+        }
+    }
+
+    buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
+
+    printf("client: received '%s'\n", buf);
+
+    close(sockfd); // Fecha o socket
+
+    return 0;
+}
+
+int main()
+{
+    while (connect_to_server("localhost") == 0)
+        ;
+
     return 0;
 }
