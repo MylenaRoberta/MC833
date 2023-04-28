@@ -345,7 +345,7 @@ int register_profile(sqlite3 *db, profile new_profile) {
     return ret;
 }
 
-int remove_profile(sqlite3 *db, char* email) {
+int remove_profile(sqlite3 *db, char *email) {
     sqlite3_stmt *stmt;
 
     int ret = 0;
@@ -357,8 +357,12 @@ int remove_profile(sqlite3 *db, char* email) {
     // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
 
+    // Verifica se o perfil está cadastrado
+    result *res;
+    get_profile(db, &res, email);
+
     // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_DONE) {    
+    if ((sqlite3_step(stmt) == SQLITE_DONE) && (res)) {    
         fprintf(stdout, "Profile removed successfuly\n");
     } else {
         fprintf(stderr, "Removal failed\n");

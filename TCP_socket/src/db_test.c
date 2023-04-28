@@ -1,7 +1,6 @@
 #include "database.h"
 
 int main(void) {
-    char *path = "../data/profiles.db";
     profile dummy;
 
     dummy.email = "jane_doe.com";
@@ -12,7 +11,7 @@ int main(void) {
     dummy.graduation_year = 2018;
     dummy.abilities = "None, Computação em Nuvem, Internet das Coisas";
 
-    sqlite3 *db = open_db(path);
+    sqlite3 *db = open_db(DB_PATH);
     result *res;
     initialize_db(db);
 
