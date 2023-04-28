@@ -208,40 +208,9 @@ void get_profile(sqlite3 *db, result **res, char *email) {
                 major, grad_year, abilities);
 
         // Insere o nó na lista
-        *res->row = ret;
-    } else {
-        *res->row = NULL;
+        insert_node(res, ret);
     }
 
-    // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
-
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
-
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].last_name = malloc(strlen(col)+1);
-        strcpy(ps[index].last_name, col);
-
-        col = (char*)sqlite3_column_text(stmt, 3);
-        ps[index].location = malloc(strlen(col)+1);
-        strcpy(ps[index].location, col);
-
-        col = (char*)sqlite3_column_text(stmt, 4);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        ps[index].graduation_year = sqlite3_column_int(stmt, 5);
-
-        col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].abilities = malloc(strlen(col)+1);
-        strcpy(ps[index].abilities, col);
-    }
-    
     // Finaliza a declaração
     sqlite3_finalize(stmt);
 }
@@ -257,21 +226,20 @@ void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
     // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, major, -1, SQLITE_STATIC);
 
-    // Prepara o array de perfis
-    char *col;
-    int index = 0;
+    // Inicializa a lista
+    *res = NULL;
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "EMAIL: %s\nNOME: %s\n", email, first_name);
 
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
     
     // Finaliza a declaração
@@ -292,21 +260,20 @@ void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
     sprintf(param, "%s%s%s", op, ability, op);
     sqlite3_bind_text(stmt, 1, param, -1, SQLITE_STATIC);
 
-    // Prepara o array de perfis
-    char *col;
-    int index = 0;
+    // Inicializa a lista
+    *res = NULL;
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "EMAIL: %s\nNOME: %s\n", email, first_name);
 
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
     
     // Finaliza a declaração
@@ -325,27 +292,24 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
     // Vincula o valor do parâmetro à declaração
     sqlite3_bind_int(stmt, 1, year);
 
-    // Prepara o array de perfis
-    char *col;
-    int index = 0;
+    // Inicializa a lista
+    *res = NULL;
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
+        char *major = (char*) sqlite3_column_text(stmt, 2);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "EMAIL: %s\nNOME: %s\nFORMAÇÃO ACADÊMICA: %s\n", 
+                email, first_name, major);
 
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
-    
+
     // Finaliza a declaração
     sqlite3_finalize(stmt);
 }

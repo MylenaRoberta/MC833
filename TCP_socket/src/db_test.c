@@ -1,49 +1,8 @@
 #include "database.h"
 
-// void iterate_profile(result **res) {
-//     // printf("EMAIL: %s\n", p.email);
-//     // printf("NOME: %s\n", p.first_name);
-//     // printf("SOBRENOME: %s\n", p.last_name);
-//     // printf("RESIDÊNCIA: %s\n", p.location);
-//     // printf("FORMAÇÃO: %s\n", p.major);
-//     // printf("FORMATURA: %d\n", p.graduation_year);
-//     // printf("HABILIDADES: %s\n", p.abilities);
-
-//     result *r;
-
-//     while(*res) {
-//         r = *res;
-//         printf("%s\n", r->row);
-//         *res = r->next;
-//         free(r->row);
-//         free(r);
-//     }
-// }
-
-// void iterate_profiles(profile ps[]) {
-//     printf("\n");
-
-//     for (int i = 0; i < PROFILES; i++) {
-//         if (ps[i].email != NULL) {
-//             printf("-------------------------------------------------\n");
-//             iterate_profile(ps[i]);
-//             printf("-------------------------------------------------\n");
-//         } else {
-//             printf("\n");
-//             break;
-//         }
-//     }
-// }
-
 int main(void) {
     char *path = "../data/profiles.db";
     profile dummy;
-    profile p = {NULL}, ps[PROFILES];
-    
-    // Initialize the profiles array
-    for (int i = 0; i < PROFILES; i++) {
-        ps[i] = p; // Dummy profile
-    }
 
     dummy.email = "jane_doe.com";
     dummy.first_name = "Jane";
@@ -58,43 +17,54 @@ int main(void) {
     initialize_db(db);
 
     // Teste das operações
+    printf("\n---------------------------------------------\n");
     get_all_profiles(db, &res);
     print_result(&res);
-    // iterate_profiles(ps);
 
-    // register_profile(db, dummy);
-    // get_all_profiles(db, ps);
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    register_profile(db, dummy);
 
-    // printf("--- major: Ciência da Computação\n");
-    // get_profiles_from_major(db, ps, "Ciência da Computação");
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    get_all_profiles(db, &res);
+    print_result(&res);
 
-    // printf("--- ability: Computação em Nuvem\n");
-    // get_profiles_from_ability(db, ps, "Computação em Nuvem");
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    printf("--- major: Ciência da Computação\n");
+    get_profiles_from_major(db, &res, "Ciência da Computação");
+    print_result(&res);
 
-    // printf("--- ability: Ciência de Dados\n");
-    // get_profiles_from_ability(db, ps, "Ciência de Dados");
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    printf("--- ability: Computação em Nuvem\n");
+    get_profiles_from_ability(db, &res, "Computação em Nuvem");
+    print_result(&res);
 
-    // printf("--- grad_year: 2018\n");
-    // get_profiles_from_graduation_year(db, ps, 2018);
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    printf("--- ability: Ciência de Dados\n");
+    get_profiles_from_ability(db, &res, "Ciência de Dados");
+    print_result(&res);
 
-    // printf("--- email: maria_souza@gmail.com\n");
-    // get_profile(db, ps, "maria_souza@gmail.com");
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    printf("--- grad_year: 2016\n");
+    get_profiles_from_graduation_year(db, &res, 2016);
+    print_result(&res);
 
-    // remove_profile(db, "maria_souza@gmail.com");
-    // get_all_profiles(db, ps);
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    printf("--- email: juliana.fernandes@outlook.com\n");
+    get_profile(db, &res, "juliana.fernandes@outlook.com");
+    print_result(&res);
 
-    // remove_profile(db, "maria_souza@gmail.com");
-    // register_profile(db, dummy);
+    printf("\n---------------------------------------------\n");
+    remove_profile(db, "juliana.fernandes@outlook.com");
+    get_all_profiles(db, &res);
+    print_result(&res);
 
-    // get_all_profiles(db, ps);
-    // iterate_profiles(ps);
+    printf("\n---------------------------------------------\n");
+    remove_profile(db, "juliana.fernandes@outlook.com");
+    register_profile(db, dummy);
+
+    printf("\n---------------------------------------------\n");
+    get_all_profiles(db, &res);
+    print_result(&res);
 
     close_db(db);
 
