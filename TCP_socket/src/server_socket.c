@@ -14,18 +14,19 @@
 
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
-#define PORT "8330"       // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
-#define BACKLOG 10        // Número máximo de conexões pendentes na fila
-#define MAXDATASIZE 22025 // Maior número de bytes que pode ser enviado por vez
+#define PORT "8330"             // Porta não utilizada por nenhum outro processo. Será responsável por receber conexões
+#define BACKLOG 10              // Número máximo de conexões pendentes na fila
+#define MAXDATASIZE 1024        // Maior número de bytes que pode ser enviado por vez
+#define MAXBUFFERSIZE 64 * 1024 // Maior número de bytes das mensagens enviadas
 
 // Função auxiliar que transforma o vetor de perfis em uma string
 void transform_profile_array(profile ps[], char *final_result)
 {
-    char result[MAXDATASIZE];
-    memset(result, 0, MAXDATASIZE);
-    char aux[MAXDATASIZE];
+    char result[MAXBUFFERSIZE];
+    memset(result, 0, MAXBUFFERSIZE);
+    char aux[MAXBUFFERSIZE];
 
-    for (int i = 0; i < PROFILES; i++)
+    for (int i = 0; i < PROFILES; i++) // Transforma o vetor em uma string
     {
         if (ps[i].email != NULL)
         {
@@ -82,10 +83,10 @@ void transform_profile_array(profile ps[], char *final_result)
         }
     }
 
-    int length = strlen(result);
+    int length = strlen(result); // Obtém tamanho da string
     snprintf(final_result, 20, "%d", length);
     snprintf(final_result, 20, "%ld", length + strlen(final_result));
-    strcat(final_result, result);
+    strcat(final_result, result); // Concatena, no início da resposta, o número de caracteres presentes na resposta
 }
 
 // Função que executa a query do cliente e retorna o seu resultado
@@ -93,7 +94,7 @@ char *execute_query(char *query, sqlite3 *db, char *query_result)
 {
     char *email, *first_name, *last_name, *location, *major, *grad_year, *abilities;
     int graduation_year;
-    long query_option = strtol(query, NULL, 10);
+    long query_option = strtol(query, NULL, 10); // Obtém o número da operação pedida pelo cliente
 
     profile p = {NULL}, ps[PROFILES], new_profile;
 
@@ -105,57 +106,57 @@ char *execute_query(char *query, sqlite3 *db, char *query_result)
 
     switch (query_option)
     {
-    case 1:
+    case 1: // Obter todos os perfis
         get_all_profiles(db, ps);
         transform_profile_array(ps, query_result);
         break;
 
-    case 2:
-        strtok(query, "&");
-        email = strtok(NULL, "&");
+    case 2:                        // Obter todas as informações de um perfil, dado seu email
+        strtok(query, "&");        // Despreza o número da operação
+        email = strtok(NULL, "&"); // Armazena o email especificado
         get_profile(db, ps, email);
         transform_profile_array(ps, query_result);
         break;
 
-    case 3:
-        strtok(query, "&");
-        major = strtok(NULL, "&");
+    case 3:                        // Obter email e nome de todos os perfis de determinado curso
+        strtok(query, "&");        // Despreza o número da operação
+        major = strtok(NULL, "&"); // Armazena o curso especificado
         get_profiles_from_major(db, ps, major);
         transform_profile_array(ps, query_result);
         break;
 
-    case 4:
-        strtok(query, "&");
-        abilities = strtok(NULL, "&");
+    case 4:                            // Obter email e nome de todos os perfis com determinada habilidade
+        strtok(query, "&");            // Despreza o número da operação
+        abilities = strtok(NULL, "&"); // Armazena a habilidade especificada
         get_profiles_from_ability(db, ps, abilities);
         transform_profile_array(ps, query_result);
         break;
 
-    case 5:
-        strtok(query, "&");
-        grad_year = strtok(NULL, "&");
-        graduation_year = atoi(grad_year);
+    case 5:                                // Obter email, nome e curso de todos os perfis com determinado ano de graduação
+        strtok(query, "&");                // Despreza o número da operação
+        grad_year = strtok(NULL, "&");     // Armazena, em string, o ano de graduação especificado
+        graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
         get_profiles_from_graduation_year(db, ps, graduation_year);
         transform_profile_array(ps, query_result);
         break;
 
     case 6:
-        strtok(query, "&");
-        new_profile.email = strtok(NULL, "&");
-        new_profile.first_name = strtok(NULL, "&");
-        new_profile.last_name = strtok(NULL, "&");
-        new_profile.location = strtok(NULL, "&");
-        new_profile.major = strtok(NULL, "&");
-        grad_year = strtok(NULL, "&");
-        new_profile.graduation_year = atoi(grad_year);
-        new_profile.abilities = strtok(NULL, "&");
+        strtok(query, "&");                            // Despreza o número da operação
+        new_profile.email = strtok(NULL, "&");         // Armazena o email especificado
+        new_profile.first_name = strtok(NULL, "&");    // Armazena o nome especificado
+        new_profile.last_name = strtok(NULL, "&");     // Armazena o sobrenome especificado
+        new_profile.location = strtok(NULL, "&");      // Armazena o local especificado
+        new_profile.major = strtok(NULL, "&");         // Armazena o curso especificado
+        grad_year = strtok(NULL, "&");                 // Armazena, em string, o ano de graduação especificado
+        new_profile.graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
+        new_profile.abilities = strtok(NULL, "&");     // Armazena as habilidades especificadas
 
         snprintf(query_result, 20, "%d", register_profile(db, new_profile));
         break;
 
     case 7:
-        strtok(query, "&");
-        email = strtok(NULL, "&");
+        strtok(query, "&");        // Despreza o número da operação
+        email = strtok(NULL, "&"); // Armazena o email especificado
         snprintf(query_result, 20, "%d", remove_profile(db, email));
         break;
 
@@ -167,19 +168,18 @@ char *execute_query(char *query, sqlite3 *db, char *query_result)
 // Função que garante que todos os bytes serão enviados
 int send_all(int dest_socket, char *msg, int *len)
 {
-    int total = 0;        // Número de bytes enviados
-    int remainder = *len; // Número de bytes restantes
+    int total = 0; // Número de bytes enviados
     int n;
 
-    while (total < *len)
+    while (total < *len) // Garante que todos os bytes serão enviados
     {
-        n = send(dest_socket, msg + total, remainder, 0);
+        n = send(dest_socket, msg + total, MAXDATASIZE - 1, 0); // Envia MAXDATASIZE - 1 bytes por vez
+
         if (n == -1)
         {
             break;
         }
         total += n;
-        remainder -= n;
     }
 
     *len = total; // Número de bytes realmente enviados
@@ -313,9 +313,9 @@ int main(void)
         { // Cria processo filho para lidar com as conexões aceitas
           // Esse trecho só é executado pelos processos filhos
             int len, numbytes;
-            char buf[MAXDATASIZE]; // Buffer para receber mensagem
-            close(socket_fd);      // O socket que aceita conexões deve ser fechado para os processos filhos
-            char msg[MAXDATASIZE];
+            char buf[MAXDATASIZE];   // Buffer para receber mensagem
+            close(socket_fd);        // O socket que aceita conexões deve ser fechado para os processos filhos
+            char msg[MAXBUFFERSIZE]; // Mensagem a ser enviada
 
             do // Recebe e envia mensagens enquanto o cliente não fechar o socket
             {
@@ -328,7 +328,7 @@ int main(void)
 
                 printf("server: received '%s'\n", buf);
 
-                execute_query(buf, db, msg);
+                execute_query(buf, db, msg); // Executa a operação pedida pelo cliente e põe a resposta em msg
                 len = strlen(msg);
 
                 if (send_all(new_fd, msg, &len) == -1)
@@ -339,7 +339,7 @@ int main(void)
 
             } while (numbytes != 0);
 
-            close(new_fd);
+            close(new_fd); // Fecha a conexão com o cliente
             exit(0);
         }
         close(new_fd); // Processo pai deve fechar o socket destinado aos processos filhos
