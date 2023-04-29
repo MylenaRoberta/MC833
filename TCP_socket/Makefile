@@ -1,7 +1,5 @@
-SFLAGS = -fno-stack-protector
+client: src/client_server.c src/client.c
+	gcc src/client_server.c src/client.c -o bin/client
 
-client: client.c
-	gcc client.c -o client
-
-server: server_socket.c database.c
-	gcc server_socket.c database.c -l sqlite3 -o server
+server: src/database.c src/client_server.c src/server.c
+	gcc src/database.c src/client_server.c src/server.c -l sqlite3 -o bin/server
