@@ -23,7 +23,7 @@ typedef struct result {
     struct result *next;
 } result;
 
-void print_result(result **res);
+// Função que insere um nó na lista de resultados
 void insert_node(result **res, char *ret);
 
 // Fecha a conexão com o banco de dados

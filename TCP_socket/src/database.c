@@ -1,17 +1,5 @@
 #include "../include/database.h"
 
-void print_result(result **res) {
-    result *r;
-
-    while(*res) {
-        r = *res;
-        printf("%s\n", r->row);
-        *res = r->next;
-        free(r->row);
-        free(r);
-    }
-}
-
 void insert_node(result **res, char *ret) {
     result *r = (result*) malloc(sizeof(result));
     r->row = ret;
