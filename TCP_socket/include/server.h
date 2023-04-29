@@ -2,7 +2,6 @@
 #define SERVER_H
 
 #include "client_server.h"
-#include "database.h"
 
 #define BACKLOG 10 // Número máximo de conexões pendentes na fila
 
@@ -13,9 +12,9 @@ void sigchild_handler(int s);
 int send_all(int dest_socket, char *msg, int *len);
 
 // Função auxiliar que transforma o vetor de perfis em uma string
-// void transform_profile_array(profile &res[], char *final_result);
+void list_to_array(result **res, char *op_result);
 
 // Função que executa a operação do cliente e retorna o seu resultado
-char* execute_query(sqlite3 *db, char *query, char *query_result)
+void execute_query(sqlite3 *db, char *query, char *query_result);
 
 #endif

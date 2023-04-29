@@ -1,5 +1,132 @@
 // Código baseado no Beej's guide, especialmente no capítulo 6
-#include "client.h"
+#include "../include/client_server.h"
+
+// Função que imprime as opções de operações
+void print_menu(int admin) {
+    printf("----------------------------------------------------------------------\n");
+    printf("Digite o número da operação que você deseja:\n");
+
+    printf("[1] Listar todas as informações de todos os perfis\n");
+    printf("[2] Listar todas as informações de um perfil\n");
+    printf("[3] Listar todas as pessoas formadas em um determinado curso\n");
+    printf("[4] Listar todas as pessoas que possuem uma determinada habilidade\n");
+    printf("[5] Listar todas as pessoas formadas em um determinado ano\n");
+
+    if (admin) {  // Cliente administrador
+        printf("[6] Cadastrar um novo perfil\n");
+        printf("[7] Remover um perfil a partir de seu email\n");
+    }
+
+    printf("[0] Sair\n");
+    printf("----------------------------------------------------------------------\n");
+}
+
+// Função obtém a operação desejada pelo cliente e os seus parâmetros, se necessário
+char* get_client_operation(int admin) {
+    char email[50], first_name[50], last_name[50], location[50], major[50], grad_year[4], abilities[100];
+
+    int option;
+    print_menu(admin);    // Exibe o menu de operações
+    printf("+ Operação: ");
+    scanf("%d", &option); // Obtém o número da operação
+
+    if (option == 0) {    // Fechamento de conexão
+        return NULL;
+    }
+
+    char *param = malloc(sizeof(char*));        // Parâmetro(s) para a operação
+    snprintf(param, sizeof(int), "%d", option); // Concatena o número da operação na query
+    strcat(param, "&");                         // & é o símbolo que separa os parâmetros na query
+
+    // Lê os parâmetros e concatena na query, de acordo com cada operação, separados por &
+    switch (option) {
+        case 1:
+            break;
+        
+        case 2:
+            printf("> Digite o email desejado: ");
+            scanf("%s", email);
+            strcat(param, email);
+            break;
+        
+        case 3:
+            printf("> Digite o curso desejado: ");
+            scanf(" %[^\n]s", major);
+            strcat(param, major);
+            break;
+        
+        case 4:
+            printf("> Digite a habilidade desejada: ");
+            scanf(" %[^\n]s", abilities);
+            strcat(param, abilities);
+            break;
+        
+        case 5:
+            printf("> Digite o ano de formatura desejado: ");
+            scanf("%s", grad_year);
+            strcat(param, grad_year);
+            break;
+        
+        case 6:
+            if (admin) {
+                printf("> Digite o email: ");
+                scanf("%s", email);
+                strcat(param, email);
+                strcat(param, "&");
+            
+                printf("> Digite o nome: ");
+                scanf("%s", first_name);
+                strcat(param, first_name);
+                strcat(param, "&");
+
+                printf("> Digite o sobrenome: ");
+                scanf("%s", last_name);
+                strcat(param, last_name);
+                strcat(param, "&");
+            
+                printf("> Digite a cidade de residência: ");
+                scanf("%s", location);
+                strcat(param, location);
+                strcat(param, "&");
+
+                printf("> Digite o curso: ");
+                scanf(" %[^\n]s", major);
+                strcat(param, major);
+                strcat(param, "&");
+
+                printf("> Digite o ano de formatura: ");
+                scanf("%s", grad_year);
+                strcat(param, grad_year);
+                strcat(param, "&");
+
+                printf("> Digite as habilidades separadas por vírgula: ");
+                scanf(" %[^\n]s", abilities);
+                strcat(param, abilities);
+            } else {
+                printf("Operação inválida!\n");
+                param = NULL;
+            }
+            break;
+        
+        case 7:
+            if (admin) {
+                printf("> Digite o email desejado: ");
+                scanf("%s", email);
+                strcat(param, email);
+            } else {
+                printf("Operação inválida!\n");
+                param = NULL;
+            }
+            break;
+        
+        default:
+            printf("Operação inválida!\n");
+            param = NULL;
+            break;
+    }
+
+    return param;
+}
 
 int main(int argc, char const *argv[]) {
     int admin = 0;

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DB_PATH "../data/profiles.db"
+#define DB_PATH "data/profiles.db"
 
 typedef struct profile {
     char *email;

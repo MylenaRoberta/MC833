@@ -1,4 +1,4 @@
-#include "database.h"
+#include "../include/database.h"
 
 void print_result(result **res) {
     result *r;
@@ -162,7 +162,7 @@ void get_all_profiles(sqlite3 *db, result **res) {
 
         // Monta a string
         char *ret = malloc(1024);
-        sprintf(ret, "EMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
                 "RESIDÊNCIA: %s\nFORMAÇÃO ACADÊMICA: %s\n"
                 "ANO DE FORMATURA: %s\nHABILIDADES: %s\n",
                 email, first_name, last_name, location,
@@ -201,7 +201,7 @@ void get_profile(sqlite3 *db, result **res, char *email) {
 
         // Monta a string
         char *ret = malloc(1024);
-        sprintf(ret, "EMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
                 "RESIDÊNCIA: %s\nFORMAÇÃO ACADÊMICA: %s\n"
                 "ANO DE FORMATURA: %s\nHABILIDADES: %s\n",
                 email, first_name, last_name, location,
@@ -236,7 +236,7 @@ void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
 
         // Monta a string
         char *ret = malloc(512);
-        sprintf(ret, "EMAIL: %s\nNOME: %s\n", email, first_name);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\n", email, first_name);
 
         // Insere o nó na lista
         insert_node(res, ret);
@@ -270,7 +270,7 @@ void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
 
         // Monta a string
         char *ret = malloc(512);
-        sprintf(ret, "EMAIL: %s\nNOME: %s\n", email, first_name);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\n", email, first_name);
 
         // Insere o nó na lista
         insert_node(res, ret);
@@ -303,7 +303,7 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
 
         // Monta a string
         char *ret = malloc(512);
-        sprintf(ret, "EMAIL: %s\nNOME: %s\nFORMAÇÃO ACADÊMICA: %s\n", 
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nFORMAÇÃO ACADÊMICA: %s\n", 
                 email, first_name, major);
 
         // Insere o nó na lista
