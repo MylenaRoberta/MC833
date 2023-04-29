@@ -9,16 +9,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define ADMIN 1
-
 // Código baseado no Beej's guide, especialmente no capítulo 6
 
 #define PORT "8330" // Porta do servidor
 
-#define MAXDATASIZE 22025 // Maior número de bytes que pode ser recebido por vez
+#define MAXDATASIZE 1024        // Maior número de bytes que pode ser recebido por vez
+#define MAXBUFFERSIZE 64 * 1024 // Maior número de bytes das mensagens recebidas
 
 // Função que imprime as opções de query
-void print_menu()
+void print_menu(int admin)
 {
     printf("Type the number of the query you wish to do:\n");
     printf("1 - Get all profiles\n");
@@ -27,10 +26,11 @@ void print_menu()
     printf("4 - Get all people that have a certain ability\n");
     printf("5 - Get all people from a certain graduation year\n");
 
-#if ADMIN == 1
-    printf("6 - Register a new profile\n");
-    printf("7 - Delete a profile by email\n");
-#endif
+    if (admin)
+    {
+        printf("6 - Register a new profile\n");
+        printf("7 - Delete a profile by email\n");
+    }
 
     printf("0 - Quit\n");
 }
@@ -38,28 +38,27 @@ void print_menu()
 char *get_query()
 {
     char email[50], first_name[50], last_name[50], location[50], major[50], grad_year[4], abilities[100];
-    print_menu();
+    print_menu(0);
     int option;
-    scanf("%d", &option);
+    scanf("%d", &option); // Obtém o número da operação
 
-    if (option == 0)
+    if (option == 0) // Caso o cliente queira fechar a conexão
     {
         return NULL;
     }
 
     char *aux_string = malloc(sizeof(char *));
 
-    snprintf(aux_string, sizeof(int), "%d", option);
-    strcat(aux_string, "&");
+    snprintf(aux_string, sizeof(int), "%d", option); // Concatena o número da operação na query
+    strcat(aux_string, "&");                         // & é o símbolo que separa os parâmetros na query
 
-#if ADMIN != 1
     if (option == 6 || option == 7)
     {
-        printf("You do not have permission to do this!");
+        printf("You do not have permission to do this!\n");
+        return NULL;
     }
-#endif
 
-    switch (option)
+    switch (option) // Lê os parâmetros e concatena na query, de acordo com cada operação, separados por &
     {
     case 1:
         break;
@@ -71,7 +70,6 @@ char *get_query()
     case 3:
         printf("Type the profile's major:\n");
         scanf(" %[^\n]s", major);
-        printf("%s\n", major);
         strcat(aux_string, major);
         break;
     case 4:
@@ -84,8 +82,56 @@ char *get_query()
         scanf("%s", grad_year);
         strcat(aux_string, grad_year);
         break;
+    default:
+        printf("Invalid option!\n");
+        return NULL;
+        break;
+    }
 
-#if ADMIN == 1
+    return aux_string;
+}
+
+char *get_query_admin()
+{
+    char email[50], first_name[50], last_name[50], location[50], major[50], grad_year[4], abilities[100];
+    print_menu(1);
+    int option;
+    scanf("%d", &option); // Obtém o número da operação
+
+    if (option == 0) // Caso o cliente queira fechar a conexão
+    {
+        return NULL;
+    }
+
+    char *aux_string = malloc(sizeof(char *));
+
+    snprintf(aux_string, sizeof(int), "%d", option); // Concatena o número da operação na query
+    strcat(aux_string, "&");                         // & é o símbolo que separa os parâmetros na query
+
+    switch (option) // Lê os parâmetros e concatena na query, de acordo com cada operação, separados por &
+    {
+    case 1:
+        break;
+    case 2:
+        printf("Type the profile's email:\n");
+        scanf("%s", email);
+        strcat(aux_string, email);
+        break;
+    case 3:
+        printf("Type the profile's major:\n");
+        scanf(" %[^\n]s", major);
+        strcat(aux_string, major);
+        break;
+    case 4:
+        printf("Type the profile's ability:\n");
+        scanf(" %[^\n]s", abilities);
+        strcat(aux_string, abilities);
+        break;
+    case 5:
+        printf("Type the profile's graduation year:\n");
+        scanf("%s", grad_year);
+        strcat(aux_string, grad_year);
+        break;
     case 6:
         printf("Type the profile's email:\n");
         scanf("%s", email);
@@ -120,8 +166,6 @@ char *get_query()
         scanf("%s", email);
         strcat(aux_string, email);
         break;
-#endif
-
     default:
         break;
     }
@@ -140,11 +184,10 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr); // IPv6
 }
 
-int connect_to_server(char *server_ip)
+int connect_to_server(char const *server_ip, int admin)
 {
     int sockfd;                           // Socket que será criado
     int numbytes;                         // Guardará o número de bytes recebidos
-    char buf[MAXDATASIZE];                // Buffer para receber mensagem
     struct addrinfo hints, *servinfo, *p; // Guardarão informações de endereço
     int rv;
     char s[INET6_ADDRSTRLEN]; // Buffer que erá utilizado apenas em caso de IPv6 da parte do servidor
@@ -190,54 +233,85 @@ int connect_to_server(char *server_ip)
 
     freeaddrinfo(servinfo); // Libera pois as informações não serão mais necessárias
 
-    char *msg = get_query();
-
-    if (msg == NULL)
+    while (1)
     {
-        return 1;
-    }
+        char received_message[MAXBUFFERSIZE]; // Buffer para guardar a mensagem recebida
+        char buf[MAXDATASIZE];                // Buffer para receber mensagem
+        memset(buf, 0, MAXDATASIZE);
+        memset(received_message, 0, MAXBUFFERSIZE);
 
-    int len = strlen(msg);
+        char *msg; // Obtém a operação e os campos, se necessário, especificados pelo cliente
 
-    if (send(sockfd, msg, len, 0) == -1)
-    { // Envia mensagem ao servidor
-        perror("send");
-        printf("Only %d bytes were successfully sent.\n", len);
-    }
-
-    free(msg);
-
-    // TODO: alterar para receber mais bytes
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
-    {
-        perror("recv");
-        exit(1);
-    }
-
-    long bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
-
-    while (bytes_to_be_received > numbytes) // Garante que todos os bytes serão recebidos
-    {
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) // Recebe os bytes enviados pelo servidor
+        if (admin) // Caso seja admin
         {
-            perror("recv");
-            exit(1);
+            msg = get_query_admin();
         }
+        else // Caso não seja admin
+        {
+            msg = get_query();
+        }
+
+        if (msg == NULL) // Quando o cliente deseja encerrar a conexão
+        {
+            break;
+        }
+
+        int len = strlen(msg);
+
+        if (send(sockfd, msg, len, 0) == -1) // Envia mensagem ao servidor indicando operação e seus parâmetros
+        {
+            perror("send");
+            printf("Only %d bytes were successfully sent.\n", len);
+        }
+
+        int received_bytes = 0;
+        long bytes_to_be_received = 0;
+        int total = MAXDATASIZE - 1;
+
+        do // Garante que todos os bytes serão recebidos
+        {
+            if ((numbytes = recv(sockfd, buf, total, 0)) == -1) // Recebe os bytes enviados pelo servidor
+            {
+                perror("recv");
+                exit(1);
+            }
+            buf[MAXDATASIZE - 1] = '\0'; // Adiciona caracter para marcar o final da string
+
+            strcpy(received_message + received_bytes, buf); // Copia bytes recebidos para buffer final que armazena toda a mensagem
+            received_bytes += numbytes;
+
+            if (bytes_to_be_received == 0) // Na primeira iteração, lê quantos bytes serão enviados
+            {
+                bytes_to_be_received = strtol(buf, NULL, 10); // Verifica quantos bytes deveriam ser recebidos
+            }
+
+        } while (bytes_to_be_received > received_bytes);
+
+        printf("client: received '%s'\n", received_message);
+        free(msg);
     }
-
-    buf[numbytes] = '\0'; // Adiciona caracter para marcar o final da string
-
-    printf("client: received '%s'\n", buf);
 
     close(sockfd); // Fecha o socket
 
     return 0;
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
-    while (connect_to_server("localhost") == 0)
-        ;
+    int admin = 0;
 
+    if (argc < 2)
+    {
+        printf("Especifique o IP do servidor!\n");
+        printf("Se o cliente for admin, digite admin depois do IP\n");
+        return 1;
+    }
+
+    if (argv[2] != NULL && strcmp(argv[2], "admin") == 0)
+    {
+        admin = 1;
+    }
+
+    connect_to_server(argv[1], admin) == 0;
     return 0;
 }
