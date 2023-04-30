@@ -40,8 +40,8 @@ int send_all(int dest_socket, char *msg, int *len) {
     return 0; // Em caso de sucesso
 }
 
-// Função
-void list_to_array(result **res, char *op_result) {
+// Função que transforma a lista de resultados em uma única string
+void list_to_string(result **res, char *op_result) {
     result *r;
     char result[MAX_BUFFER_SIZE];
     memset(result, 0, MAX_BUFFER_SIZE);
@@ -77,7 +77,7 @@ void execute_query(sqlite3 *db, char *query, char *op_result) {
         // Obtém todos os perfis
         case 1:
             get_all_profiles(db, &res);
-            list_to_array(&res, op_result);
+            list_to_string(&res, op_result);
             break;
 
         // Obtém todas as informações de um perfil, dado seu email
@@ -85,7 +85,7 @@ void execute_query(sqlite3 *db, char *query, char *op_result) {
             strtok(query, "&");        // Despreza o número da operação
             email = strtok(NULL, "&"); // Armazena o email especificado
             get_profile(db, &res, email);
-            list_to_array(&res, op_result);
+            list_to_string(&res, op_result);
             break;
 
         // Obtém email e nome dos perfis com uma determinada formação acadêmica
@@ -93,7 +93,7 @@ void execute_query(sqlite3 *db, char *query, char *op_result) {
             strtok(query, "&");        // Despreza o número da operação
             major = strtok(NULL, "&"); // Armazena o curso especificado
             get_profiles_from_major(db, &res, major);
-            list_to_array(&res, op_result);
+            list_to_string(&res, op_result);
             break;
 
         // Obtém email e nome dos perfis com uma determinada habilidade
@@ -101,7 +101,7 @@ void execute_query(sqlite3 *db, char *query, char *op_result) {
             strtok(query, "&");            // Despreza o número da operação
             abilities = strtok(NULL, "&"); // Armazena a habilidade especificada
             get_profiles_from_ability(db, &res, abilities);
-            list_to_array(&res, op_result);
+            list_to_string(&res, op_result);
             break;
 
         // Obtém email, nome e curso dos perfis com determinado ano de graduação
@@ -110,7 +110,7 @@ void execute_query(sqlite3 *db, char *query, char *op_result) {
             grad_year = strtok(NULL, "&");     // Armazena, em string, o ano de graduação especificado
             graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
             get_profiles_from_graduation_year(db, &res, graduation_year);
-            list_to_array(&res, op_result);
+            list_to_string(&res, op_result);
             break;
 
         // Adiciona um novo perfil ao banco de dados
