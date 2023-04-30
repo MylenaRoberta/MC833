@@ -1,7 +1,14 @@
-#include "database.h"
+#include "../include/database.h"
+
+void insert_node(result **res, char *ret) {
+    result *r = (result*) malloc(sizeof(result));
+    r->row = ret;
+    r->next = *res;
+    *res = r;
+}
 
 int close_db(sqlite3 *db) {
-    // Close the database connection
+    // Fecha a conexão com o banco de dados
     int rc = sqlite3_close(db);
 
     if (rc != SQLITE_OK) {
@@ -14,9 +21,9 @@ int close_db(sqlite3 *db) {
 }
 
 sqlite3 *open_db(char *path) {
-    sqlite3 *db; // Database handle
+    sqlite3 *db; // Handle do banco de dados
 
-    // Open a new database connection
+    // Abre uma nova conexão com o banco de dados
     int rc = sqlite3_open(path, &db);
 
     if (rc != SQLITE_OK) {
@@ -31,7 +38,7 @@ sqlite3 *open_db(char *path) {
 int initialize_db(sqlite3 *db) {
     char *err_msg = NULL;
 
-    // Insert default profiles
+    // Cria a tabela e insere os perfis iniciais
     char *query = "DROP TABLE IF EXISTS Profiles;"
                   "CREATE TABLE Profiles("
                   "   email TEXT PRIMARY KEY,"
@@ -43,31 +50,17 @@ int initialize_db(sqlite3 *db) {
                   "   abilities TEXT"
                   ");"
                   "INSERT INTO Profiles VALUES("
-                  "   'maria_souza@gmail.com',"
-                  "   'Maria',"
-                  "   'Souza',"
-                  "   'Campinas',"
-                  "   'Ciência da Computação',"
-                  "   2018,"
-                  "   'Ciência de Dados, Internet das Coisas, Computação em Nuvem'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
                   "   'ana.oliveira@hotmail.com',"
                   "   'Ana',"
                   "   'Oliveira',"
                   "   'São Paulo',"
                   "   'Engenharia de Computação',"
-                  "   2015,"
-                  "   'Desenvolvimento de Software, Inteligência Artificial, Realidade Virtual'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
-                  "   'gustavo_santos@gmail.com',"
-                  "   'Gustavo',"
-                  "   'Santos',"
-                  "   'Belo Horizonte',"
-                  "   'Sistemas de Informação',"
-                  "   2017,"
-                  "   'Segurança da Informação, Redes de Computadores, Programação em Python'"
+                  "   2016,"
+                  "   'Ciência de Dados,"
+                  " Processamento de Imagens,"
+                  " Banco de Dados,"
+                  " Visão Computacional,"
+                  " Deep Learning'"
                   ");"
                   "INSERT INTO Profiles VALUES("
                   "   'felipelima@yahoo.com',"
@@ -76,7 +69,11 @@ int initialize_db(sqlite3 *db) {
                   "   'Recife',"
                   "   'Ciência da Computação',"
                   "   2019,"
-                  "   'Desenvolvimento Web, Banco de Dados, Programação em Java'"
+                  "   'Desenvolvimento Web,"
+                  " Banco de Dados,"
+                  " Programação em JavaScript,"
+                  " Versionamento de Código,"
+                  " Testes de Software'"
                   ");"
                   "INSERT INTO Profiles VALUES("
                   "   'juliana.fernandes@outlook.com',"
@@ -85,16 +82,11 @@ int initialize_db(sqlite3 *db) {
                   "   'Porto Alegre',"
                   "   'Engenharia de Software',"
                   "   2016,"
-                  "   'Arquitetura de Software, Testes de Software, Métodos Ágeis'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
-                  "   'rafael_silva@gmail.com',"
-                  "   'Rafael',"
-                  "   'Silva',"
-                  "   'Rio de Janeiro',"
-                  "   'Ciência da Computação',"
-                  "   2020,"
-                  "   'Desenvolvimento Mobile, Programação em Kotlin, Design de Interfaces'"
+                  "   'Arquitetura de Software,"
+                  " Versionamento de Código,"
+                  " Testes de Software,"
+                  " Qualidade de Software,"
+                  " Métodos Ágeis'"
                   ");"
                   "INSERT INTO Profiles VALUES("
                   "   'lucas.santos@uol.com.br',"
@@ -103,34 +95,11 @@ int initialize_db(sqlite3 *db) {
                   "   'Salvador',"
                   "   'Engenharia de Computação',"
                   "   2017,"
-                  "   'Desenvolvimento de Jogos, Realidade Virtual, Programação em C#'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
-                  "   'camilaalmeida@gmail.com',"
-                  "   'Camila',"
-                  "   'Almeida',"
-                  "   'Brasília',"
-                  "   'Ciência da Computação',"
-                  "   2019,"
-                  "   'Computação Gráfica, Visualização de Dados, Programação em R'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
-                  "   'pedro.barbosa@yahoo.com',"
-                  "   'Pedro',"
-                  "   'Barbosa',"
-                  "   'Fortaleza',"
-                  "   'Sistemas de Informação',"
-                  "   2016,"
-                  "   'Programação em PHP, Banco de Dados, Desenvolvimento Web'"
-                  ");"
-                  "INSERT INTO Profiles VALUES("
-                  "   'vanessa.gomes@hotmail.com',"
-                  "   'Vanessa',"
-                  "   'Gomes',"
-                  "   'Belém',"
-                  "   'Engenharia de Software',"
-                  "   2018,"
-                  "   'Qualidade de Software, Gerenciamento de Projetos de Software, Métodos Ágeis'"
+                  "   'Desenvolvimento de Jogos,"
+                  " Processamento de Imagens,"
+                  " Realidade Virtual,"
+                  " Versionamento de Código,"
+                  " Programação em C#'"
                   ");"
                   "INSERT INTO Profiles VALUES("
                   "   'rafaelacosta@gmail.com',"
@@ -139,10 +108,14 @@ int initialize_db(sqlite3 *db) {
                   "   'Florianópolis',"
                   "   'Ciência da Computação',"
                   "   2021,"
-                  "   'Computação Quântica, Segurança da Informação, Programação em Python'"
+                  "   'Computação Quântica,"
+                  " Programação Paralela,"
+                  " Segurança da Informação,"
+                  " Criptografia,"
+                  " Programação em Python'"
                   ");";
 
-    // Run the query
+    // Executa a query
     int rc = sqlite3_exec(db, query, 0, 0, &err_msg);
 
     if (rc != SQLITE_OK) {
@@ -155,223 +128,177 @@ int initialize_db(sqlite3 *db) {
     return 0;
 }
 
-void desalocate_memory(profile ps[]) {
-    for (int i = 0; i < PROFILES; i++) {
-        if (ps[i].email != NULL) {
-            free(ps[i].email);
-            free(ps[i].first_name);
-            free(ps[i].last_name);
-            free(ps[i].location);
-            free(ps[i].major);
-            free(ps[i].abilities);
-            
-            profile p = {NULL};
-            ps[i] = p;
-        } else {
-            break;
-        }
-    }
-}
-
-void get_all_profiles(sqlite3 *db, profile ps[]) {
+void get_all_profiles(sqlite3 *db, result **res) {
     sqlite3_stmt *stmt;
     char *query = "SELECT * FROM Profiles";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
-    // Prepare the profiles array
-    char *col;
-    int index = 0;
-    desalocate_memory(ps);
+    // Inicializa a lista
+    *res = NULL;
 
-    // Evaluate the statement
+    // Avalia a declaração
     while (sqlite3_step(stmt) == SQLITE_ROW) {   
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
+        char *last_name = (char*) sqlite3_column_text(stmt, 2);
+        char *location = (char*) sqlite3_column_text(stmt, 3);
+        char *major = (char*) sqlite3_column_text(stmt, 4);
+        char *grad_year = (char*) sqlite3_column_text(stmt, 5);
+        char *abilities = (char*) sqlite3_column_text(stmt, 6);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(1024);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
+                "RESIDÊNCIA: %s\nFORMAÇÃO ACADÊMICA: %s\n"
+                "ANO DE FORMATURA: %s\nHABILIDADES: %s\n",
+                email, first_name, last_name, location,
+                major, grad_year, abilities);
 
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].last_name = malloc(strlen(col)+1);
-        strcpy(ps[index].last_name, col);
-
-        col = (char*)sqlite3_column_text(stmt, 3);
-        ps[index].location = malloc(strlen(col)+1);
-        strcpy(ps[index].location, col);
-
-        col = (char*)sqlite3_column_text(stmt, 4);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        ps[index].graduation_year = sqlite3_column_int(stmt, 5);
-
-        col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].abilities = malloc(strlen(col)+1);
-        strcpy(ps[index].abilities, col);
-
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
 
-    // Finalize the statement
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
 }
 
-void get_profile(sqlite3 *db, profile ps[], char *email) {
+void get_profile(sqlite3 *db, result **res, char *email) {
     sqlite3_stmt *stmt;
     char *query = "SELECT * FROM Profiles WHERE email = ?";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
-    // Bind the parameter value to the prepared statement
+    // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
 
-    // Prepare the profiles array
-    char *col;
-    int index = 0;
-    desalocate_memory(ps);
+    // Inicializa a lista
+    *res = NULL;
 
-    // Evaluate the statement
-    if (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    // Avalia a declaração
+    if (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
+        char *last_name = (char*) sqlite3_column_text(stmt, 2);
+        char *location = (char*) sqlite3_column_text(stmt, 3);
+        char *major = (char*) sqlite3_column_text(stmt, 4);
+        char *grad_year = (char*) sqlite3_column_text(stmt, 5);
+        char *abilities = (char*) sqlite3_column_text(stmt, 6);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(1024);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nSOBRENOME: %s\n"
+                "RESIDÊNCIA: %s\nFORMAÇÃO ACADÊMICA: %s\n"
+                "ANO DE FORMATURA: %s\nHABILIDADES: %s\n",
+                email, first_name, last_name, location,
+                major, grad_year, abilities);
 
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].last_name = malloc(strlen(col)+1);
-        strcpy(ps[index].last_name, col);
-
-        col = (char*)sqlite3_column_text(stmt, 3);
-        ps[index].location = malloc(strlen(col)+1);
-        strcpy(ps[index].location, col);
-
-        col = (char*)sqlite3_column_text(stmt, 4);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        ps[index].graduation_year = sqlite3_column_int(stmt, 5);
-
-        col = (char*)sqlite3_column_text(stmt, 6);
-        ps[index].abilities = malloc(strlen(col)+1);
-        strcpy(ps[index].abilities, col);
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
-    
-    // Finalize the statement
+
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
 }
 
-void get_profiles_from_major(sqlite3 *db, profile ps[], char *major) {
+void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE major = ?";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     
-    // Bind the parameter value to the prepared statement
+    // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, major, -1, SQLITE_STATIC);
 
-    // Prepare the profiles array
-    char *col;
-    int index = 0;
-    desalocate_memory(ps);
+    // Inicializa a lista
+    *res = NULL;
 
-    // Evaluate the statement
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    // Avalia a declaração
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\n", email, first_name);
 
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
     
-    // Finalize the statement
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
 }
 
-void get_profiles_from_ability(sqlite3 *db, profile ps[], char *ability) {
+void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE abilities LIKE ?";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     
-    // Bind the parameters values to the prepared statement
+    // Vincula o valor do parâmetro à declaração
     char *op = "%";
     char *param = malloc(strlen(ability)+3);
     sprintf(param, "%s%s%s", op, ability, op);
     sqlite3_bind_text(stmt, 1, param, -1, SQLITE_STATIC);
 
-    // Prepare the profiles array
-    char *col;
-    int index = 0;
-    desalocate_memory(ps);
+    // Inicializa a lista
+    *res = NULL;
 
-    // Evaluate the statement
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    // Avalia a declaração
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\n", email, first_name);
 
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
     
-    // Finalize the statement
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
     free(param);
 }
 
-void get_profiles_from_graduation_year(sqlite3 *db, profile ps[], int year) {
+void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name, major FROM Profiles "
                   "WHERE graduation_year = ?";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
-    // Bind the parameter value to the prepared statement
+    // Vincula o valor do parâmetro à declaração
     sqlite3_bind_int(stmt, 1, year);
 
-    // Prepare the profiles array
-    char *col;
-    int index = 0;
-    desalocate_memory(ps);
+    // Inicializa a lista
+    *res = NULL;
 
-    // Evaluate the statement
-    while (sqlite3_step(stmt) == SQLITE_ROW) {    
-        col = (char*)sqlite3_column_text(stmt, 0);
-        ps[index].email = malloc(strlen(col)+1);
-        strcpy(ps[index].email, col);
+    // Avalia a declaração
+    while (sqlite3_step(stmt) == SQLITE_ROW) {   
+        char *email = (char*) sqlite3_column_text(stmt, 0);
+        char *first_name = (char*) sqlite3_column_text(stmt, 1);
+        char *major = (char*) sqlite3_column_text(stmt, 2);
 
-        col = (char*)sqlite3_column_text(stmt, 1);
-        ps[index].first_name = malloc(strlen(col)+1);
-        strcpy(ps[index].first_name, col);
+        // Monta a string
+        char *ret = malloc(512);
+        sprintf(ret, "\nEMAIL: %s\nNOME: %s\nFORMAÇÃO ACADÊMICA: %s\n", 
+                email, first_name, major);
 
-        col = (char*)sqlite3_column_text(stmt, 2);
-        ps[index].major = malloc(strlen(col)+1);
-        strcpy(ps[index].major, col);
-
-        index++;
+        // Insere o nó na lista
+        insert_node(res, ret);
     }
-    
-    // Finalize the statement
+
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
 }
 
@@ -381,10 +308,10 @@ int register_profile(sqlite3 *db, profile new_profile) {
     int ret = 0;
     char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?)";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     
-    // Bind the parameters values to the prepared statement
+    // Vincula os valores dos parâmetros à declaração
     sqlite3_bind_text(stmt, 1, new_profile.email, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, new_profile.first_name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, new_profile.last_name, -1, SQLITE_STATIC);
@@ -393,7 +320,7 @@ int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_bind_int(stmt, 6, new_profile.graduation_year);
     sqlite3_bind_text(stmt, 7, new_profile.abilities, -1, SQLITE_STATIC);
 
-    // Evaluate the statement
+    // Avalia a declaração
     if (sqlite3_step(stmt) == SQLITE_DONE) {    
         fprintf(stdout, "Profile registered successfuly\n");
     } else {
@@ -401,32 +328,36 @@ int register_profile(sqlite3 *db, profile new_profile) {
         ret = -1;
     }
     
-    // Finalize the statement
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
     return ret;
 }
 
-int remove_profile(sqlite3 *db, char* email) {
+int remove_profile(sqlite3 *db, char *email) {
     sqlite3_stmt *stmt;
 
     int ret = 0;
     char *query = "DELETE FROM Profiles WHERE email = ?";
 
-    // Compile the query
+    // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     
-    // Bind the parameter value to the prepared statement
+    // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
 
-    // Evaluate the statement
-    if (sqlite3_step(stmt) == SQLITE_DONE) {    
+    // Verifica se o perfil está cadastrado
+    result *res;
+    get_profile(db, &res, email);
+
+    // Avalia a declaração
+    if ((sqlite3_step(stmt) == SQLITE_DONE) && (res)) {    
         fprintf(stdout, "Profile removed successfuly\n");
     } else {
         fprintf(stderr, "Removal failed\n");
         ret = -1;
     }
     
-    // Finalize the statement
+    // Finaliza a declaração
     sqlite3_finalize(stmt);
     return ret;
 }
