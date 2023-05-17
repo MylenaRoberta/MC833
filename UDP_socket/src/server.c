@@ -2,27 +2,16 @@
 #include "../include/client_server.h"
 #include "../include/database.h"
 
-#define BACKLOG 10 // Número máximo de conexões pendentes na fila
-
-// Função responsável por finalizar processos zumbis
-void sigchild_handler(int s) {
-    int errno_backup = errno;
-
-    while (waitpid(-1, NULL, WNOHANG) > 0);
-
-    // O waitpid pode mudar o valor do errno, mas queremos preservá-lo
-    errno = errno_backup;
-}
-
 // Função que garante que todos os bytes serão enviados
-int send_all(int dest_socket, char *msg, int *len) {
+int send_all(int dest_socket, char *msg, int *len, struct addrinfo* p) {
     int total = 0; // Número de bytes enviados
     int n;
 
     // Garante que todos os bytes serão enviados
     while (total < *len) {
         // Envia MAX_DATA_SIZE - 1 bytes por vez
-        n = send(dest_socket, msg + total, MAX_DATA_SIZE - 1, 0);
+        n = sendto(dest_socket, msg + total, MAX_DATA_SIZE - 1, 0,
+        p->ai_addr, p->ai_addrlen);
 
         if (n == -1) {
             break;
@@ -158,22 +147,20 @@ int main(void) {
     sqlite3 *db = open_db(DB_PATH); // Abre a conexão com o banco de dados
     initialize_db(db);              // Inicializa o banco de dados com os perfis default
 
-    int socket_fd;                        // Escuta conexões
-    int new_fd;                           // Novas conexões
+    int socket_fd;                        // Socket do servidor
     struct addrinfo hints, *servinfo, *p; // Posteriormente vão guardar informações de endereço
     struct sockaddr_storage their_addr;   // Guarda informações do endereço dos clientes
-    socklen_t sin_size;                   // Guarda informações sobre o tamanho do socket
-    struct sigaction sa;                  // Para tratar processos zumbis
+    socklen_t addr_len;         // Guarda informações sobre o tamanho do socket
     int yes = 1;
     char s[INET6_ADDRSTRLEN]; // Buffer que será utilizado em caso de IPv6 da parte do cliente
     int rv;
 
     memset(&hints, 0, sizeof hints); // Garantir que todos os bits estão zerados
     hints.ai_family = AF_UNSPEC;     // Deixa para definir se é IPv4 ou IPv6 posteriormente
-    hints.ai_socktype = SOCK_STREAM; // Define socket tipo TCP
+    hints.ai_socktype = SOCK_DGRAM; // Define socket tipo UDP
     hints.ai_flags = AI_PASSIVE;     // Pega o IP da própria máquina
 
-    // Pega informações sobre o endereço do socket que recebe novas conexões
+    // Pega informações sobre o endereço do socket do servidor
     if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
@@ -210,71 +197,43 @@ int main(void) {
         exit(1);
     }
 
-    if (listen(socket_fd, BACKLOG) == -1) {
-        perror("listen");
-        exit(1);
-    }
-
-    sa.sa_handler = sigchild_handler; // Finaliza processos zumbis
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("sigaction");
-        exit(1);
-    }
-
     printf("servidor: esperando por conexões...\n");
 
-    while (1) { // Loop em que o servidor espera por conexões e as aceita
-        sin_size = sizeof their_addr;
-        new_fd = accept(socket_fd, (struct sockaddr*)&their_addr, &sin_size);
+    while (1) { // Loop em que o servidor espera por conexões e as atende
 
-        if (new_fd == -1) {
-            perror("accept");
-            continue;
+        int len, numbytes;
+        char buf[MAX_DATA_SIZE];   // Buffer para receber mensagem
+        char msg[MAX_BUFFER_SIZE]; // Mensagem a ser enviada
+        addr_len = sizeof their_addr;
+
+        // Recebe os bytes enviados pelo cliente
+        if ((numbytes = recvfrom(socket_fd, buf, MAX_DATA_SIZE - 1, 0,
+        (struct sockaddr *) &their_addr, &addr_len)) == -1) {
+            perror("recv");
+            exit(1);
         }
+
+        buf[numbytes] = '\0'; // Adiciona caractere para marcar o final da string
 
         // Obtém endereço do cliente, sendo IPv4 ou IPv6
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
         printf("servidor: conexão com %s\n", s);
+        
+        printf("servidor: recebido '%s'\n", buf);
 
-        if (!fork()) { // Cria processo filho para lidar com as conexões aceitas
-            close(socket_fd);          // Socket que aceita conexões deve ser fechado para os processos filhos
-            int len, numbytes;
-            char buf[MAX_DATA_SIZE];   // Buffer para receber mensagem
-            char msg[MAX_BUFFER_SIZE]; // Mensagem a ser enviada
+        // Executa a operação pedida pelo cliente e põe a resposta em msg
+        execute_query(db, buf, msg);
+        len = strlen(msg);
 
-            do { // Recebe e envia mensagens enquanto o cliente não fechar o socket    
-                // Recebe os bytes enviados pelo cliente
-                if ((numbytes = recv(new_fd, buf, MAX_DATA_SIZE - 1, 0)) == -1) {
-                    perror("recv");
-                    exit(1);
-                }
-
-                buf[numbytes] = '\0'; // Adiciona caractere para marcar o final da string
-
-                printf("servidor: recebido '%s'\n", buf);
-
-                // Executa a operação pedida pelo cliente e põe a resposta em msg
-                execute_query(db, buf, msg);
-                len = strlen(msg);
-
-                if (send_all(new_fd, msg, &len) == -1) { 
-                    // Envia mensagem ao cliente conectado a este processo filho
-                    perror("send");
-                    printf("Somente %d bytes foram enviados com sucesso.\n", len);
-                }
-
-            } while (numbytes != 0);
-
-            close(new_fd); // Fecha a conexão com o cliente
-            exit(0);
+        if (send_all(socket_fd, msg, &len, p) == -1) { 
+            // Envia mensagem ao cliente conectado a este processo filho
+            perror("send");
+            printf("Somente %d bytes foram enviados com sucesso.\n", len);
         }
-
-        close(new_fd); // Processo pai deve fechar o socket destinado aos processos filhos
+        
     }
 
+    close(socket_fd); // Fecha o socket do servidor
     close_db(db); // Encerra a conexão com o banco de dados
 
     return 0;

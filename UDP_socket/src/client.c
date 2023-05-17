@@ -149,7 +149,7 @@ int main(int argc, char const *argv[]) {
 
     memset(&hints, 0, sizeof hints); // Assegura que tudo será inicializado com zeros
     hints.ai_family = AF_UNSPEC;     // Não especifica se será IPv4 ou IPv6
-    hints.ai_socktype = SOCK_STREAM; // Socket TCP
+    hints.ai_socktype = SOCK_DGRAM; // Socket UDP
 
     // Pega informações sobre o endereço do servidor
     if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
