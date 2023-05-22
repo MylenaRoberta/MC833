@@ -21,7 +21,7 @@ int close_db(sqlite3 *db) {
 }
 
 sqlite3 *open_db(char *path) {
-    sqlite3 *db; // Handle do banco de dados
+    sqlite3 *db; // Handler do banco de dados
 
     // Abre uma nova conexão com o banco de dados
     int rc = sqlite3_open(path, &db);
@@ -33,6 +33,41 @@ sqlite3 *open_db(char *path) {
 
     fprintf(stdout, "Database connection established\n");
     return db;
+}
+
+void insert_profile_image(sqlite3 *db, char *email) {
+    // Abre o arquivo da imagem
+    FILE *fp = fopen(DEFAULT_IMG_PATH, "rb");
+
+    fseek(fp, 0, SEEK_END); // Move o ponteiro para o final do arquivo
+    int flen = ftell(fp);   // Obtém o tamanho do arquivo em bytes
+    fseek(fp, 0, SEEK_SET); // Move o ponteiro para o começo do arquivo
+
+    char image[flen+1];    // Monta um array para armazenar a imagem
+    int size = fread(image, 1, flen, fp); // Armazena a imagem no array
+
+    fclose(fp); // Fecha o file handler
+
+    sqlite3_stmt *stmt;
+    char *query = "UPDATE Profiles SET image_flag = 1, image = ? "
+                  "WHERE email = ?";
+
+    // Compila a query
+    sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+    
+    // Vincula os valores dos parâmetros à declaração
+    sqlite3_bind_blob(stmt, 1, image, size, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, email, -1, SQLITE_STATIC);
+
+    // Avalia a declaração
+    if (sqlite3_step(stmt) == SQLITE_DONE) {    
+        fprintf(stdout, "Image registered successfuly\n");
+    } else {
+        fprintf(stderr, "Image registration failed\n");
+    }
+    
+    // Finaliza a declaração
+    sqlite3_finalize(stmt);
 }
 
 int initialize_db(sqlite3 *db) {
@@ -47,9 +82,13 @@ int initialize_db(sqlite3 *db) {
                   "   location TEXT,"
                   "   major TEXT,"
                   "   graduation_year INT,"
-                  "   abilities TEXT"
+                  "   abilities TEXT,"
+                  "   image_flag INT,"
+                  "   image BLOB"
                   ");"
-                  "INSERT INTO Profiles VALUES("
+                  "INSERT INTO Profiles(email, first_name, "
+                  "last_name, location, major, "
+                  "graduation_year, abilities) VALUES("
                   "   'ana.oliveira@hotmail.com',"
                   "   'Ana',"
                   "   'Oliveira',"
@@ -62,7 +101,9 @@ int initialize_db(sqlite3 *db) {
                   " Visão Computacional,"
                   " Deep Learning'"
                   ");"
-                  "INSERT INTO Profiles VALUES("
+                  "INSERT INTO Profiles(email, first_name, "
+                  "last_name, location, major, "
+                  "graduation_year, abilities) VALUES("
                   "   'felipelima@yahoo.com',"
                   "   'Felipe',"
                   "   'Lime',"
@@ -75,7 +116,9 @@ int initialize_db(sqlite3 *db) {
                   " Versionamento de Código,"
                   " Testes de Software'"
                   ");"
-                  "INSERT INTO Profiles VALUES("
+                  "INSERT INTO Profiles(email, first_name, "
+                  "last_name, location, major, "
+                  "graduation_year, abilities) VALUES("
                   "   'juliana.fernandes@outlook.com',"
                   "   'Juliana',"
                   "   'Fernandes',"
@@ -88,7 +131,9 @@ int initialize_db(sqlite3 *db) {
                   " Qualidade de Software,"
                   " Métodos Ágeis'"
                   ");"
-                  "INSERT INTO Profiles VALUES("
+                  "INSERT INTO Profiles(email, first_name, "
+                  "last_name, location, major, "
+                  "graduation_year, abilities) VALUES("
                   "   'lucas.santos@uol.com.br',"
                   "   'Lucas',"
                   "   'Santos',"
@@ -101,7 +146,9 @@ int initialize_db(sqlite3 *db) {
                   " Versionamento de Código,"
                   " Programação em C#'"
                   ");"
-                  "INSERT INTO Profiles VALUES("
+                  "INSERT INTO Profiles(email, first_name, "
+                  "last_name, location, major, "
+                  "graduation_year, abilities) VALUES("
                   "   'rafaelacosta@gmail.com',"
                   "   'Rafaela',"
                   "   'Costa',"
@@ -124,13 +171,22 @@ int initialize_db(sqlite3 *db) {
         return -1;
     }
 
+    // Insere as imagens dos perfis no banco de dados
+    insert_profile_image(db, "ana.oliveira@hotmail.com");
+    insert_profile_image(db, "felipelima@yahoo.com");
+    insert_profile_image(db, "juliana.fernandes@outlook.com");
+    insert_profile_image(db, "lucas.santos@uol.com.br");
+    insert_profile_image(db, "rafaelacosta@gmail.com");
+
     fprintf(stdout, "Database initialized\n");
     return 0;
 }
 
 void get_all_profiles(sqlite3 *db, result **res) {
     sqlite3_stmt *stmt;
-    char *query = "SELECT * FROM Profiles";
+    char *query = "SELECT email, first_name, last_name, "
+                  "location, major, graduation_year, "
+                  "abilities FROM Profiles";
 
     // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -166,7 +222,9 @@ void get_all_profiles(sqlite3 *db, result **res) {
 
 void get_profile(sqlite3 *db, result **res, char *email) {
     sqlite3_stmt *stmt;
-    char *query = "SELECT * FROM Profiles WHERE email = ?";
+    char *query = "SELECT email, first_name, last_name, "
+                  "location, major, graduation_year, "
+                  "abilities FROM Profiles WHERE email = ?";
 
     // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -197,6 +255,35 @@ void get_profile(sqlite3 *db, result **res, char *email) {
 
         // Insere o nó na lista
         insert_node(res, ret);
+    }
+
+    // Finaliza a declaração
+    sqlite3_finalize(stmt);
+}
+
+void get_profile_image(sqlite3 *db, char *email) {
+    sqlite3_stmt *stmt;
+    char *query = "SELECT image FROM Profiles "
+                  "WHERE image_flag = 1 AND email = ?";
+
+    // Compila a query
+    sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+
+    // Vincula o valor do parâmetro à declaração
+    sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
+    
+    // Avalia a declaração
+    if (sqlite3_step(stmt) == SQLITE_ROW) {   
+        // Cria um arquivo para salvar a imagem
+        FILE *fp = fopen(RETURN_IMG_PATH, "wb");
+
+        // Calcula o tamanho da imagem em bytes
+        int bytes = sqlite3_column_bytes(stmt, 0);
+        
+        // Armazena a imagem no arquivo criado
+        fwrite(sqlite3_column_blob(stmt, 0), bytes, 1, fp);
+
+        fclose(fp); // Fecha o file handler
     }
 
     // Finaliza a declaração
@@ -304,9 +391,9 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
 
 int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_stmt *stmt;
-
-    int ret = 0;
-    char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?)";
+    char *query = "INSERT INTO Profiles(email, first_name, last_name, "
+                  "location, major, graduation_year, abilities, "
+                  "image_flag) VALUES(?, ?, ?, ?, ?, ?, ?, 0)";
 
     // Compila a query
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -319,8 +406,10 @@ int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_bind_text(stmt, 5, new_profile.major, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, new_profile.graduation_year);
     sqlite3_bind_text(stmt, 7, new_profile.abilities, -1, SQLITE_STATIC);
-
+    
     // Avalia a declaração
+    int ret = 0;
+
     if (sqlite3_step(stmt) == SQLITE_DONE) {    
         fprintf(stdout, "Profile registered successfuly\n");
     } else {
@@ -335,8 +424,6 @@ int register_profile(sqlite3 *db, profile new_profile) {
 
 int remove_profile(sqlite3 *db, char *email) {
     sqlite3_stmt *stmt;
-
-    int ret = 0;
     char *query = "DELETE FROM Profiles WHERE email = ?";
 
     // Compila a query
@@ -346,6 +433,7 @@ int remove_profile(sqlite3 *db, char *email) {
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
 
     // Verifica se o perfil está cadastrado
+    int ret = 0;
     result *res;
     get_profile(db, &res, email);
 
