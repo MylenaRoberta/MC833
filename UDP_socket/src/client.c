@@ -1,5 +1,8 @@
 // Código baseado no Beej's guide, especialmente no capítulo 6
 #include "../include/client_server.h"
+#include <poll.h>
+
+#define TIMEOUT_MS 5000
 
 // Função que imprime as opções de operações
 void print_menu(int admin)
@@ -34,7 +37,7 @@ char *get_client_operation(int admin)
     scanf("%d", &option); // Obtém o número da operação
 
     if (option == 0)
-    { // Fechamento de conexão
+    { // Cliente não deseja fazer mais nenhuma requisição
         return NULL;
     }
 
@@ -172,7 +175,10 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    // Faz um loop pelos resultados e conecta com o primeiro possível
+    // Faz um loop pelos resultados e "conecta" com o primeiro possível
+    // Quando se trata de UDP, não existe conexão no sentido tradicional,
+    // mas a função connect() faz com que não precisemos especificar o IP do servidor a cada send() e recv()
+    // Usaremos a palavra conectar para se referir a isso, mesmo que ela não possua o sentido tradicional
     for (p = servinfo; p != NULL; p = p->ai_next)
     {
         // Erro ao criar socket do cliente
@@ -182,7 +188,7 @@ int main(int argc, char const *argv[])
             continue;
         }
 
-        // Erro ao conectar
+        // Erro ao "conectar"
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
         {
             close(sockfd);
@@ -205,13 +211,18 @@ int main(int argc, char const *argv[])
 
     freeaddrinfo(servinfo); // Libera, pois as informações não serão mais necessárias
 
+    // Criando a struct pollfd para o polling
+    struct pollfd fds[1];
+    fds[0].fd = sockfd;
+    fds[0].events = POLLIN;
+
     while (1)
     {
         // Obtém a operação e os parâmetros, se necessário, especificados pelo cliente
         char *msg = get_client_operation(admin);
 
         if (msg == NULL)
-        { // Cliente deseja encerrar a conexão
+        { // Cliente não deseja fazer mais nenhuma requisição
             break;
         }
 
@@ -226,72 +237,103 @@ int main(int argc, char const *argv[])
         {
             perror("send");
             printf("Somente %d bytes foram enviados com sucesso\n", len);
+            continue;
         }
 
         int received_bytes = 0;
-        int datagram_number, dismissed_bytes, datagram_position;
+        int datagram_number, dismissed_bytes, datagram_position, timeout;
         long bytes_to_be_received = 0;
         int total = MAX_DATA_SIZE - 1;
         char message_size_string[10];
 
         do
-        { // Garante que todos os bytes serão recebidos
-            // Recebe os bytes enviados pelo servidor
-            if ((numbytes = recv(sockfd, buf, total, 0)) == -1)
-            {
-                perror("recv");
-                exit(1);
+        { // Garante que todos os bytes serão recebidos ou que a operação será abortada
+            timeout = 0;
+
+            // Fazendo polling
+            int numReady = poll(fds, 1, TIMEOUT_MS);
+
+            if (numReady == -1)
+            { // Erro de polling
+                perror("Poll error");
+                exit(EXIT_FAILURE);
             }
 
-            // Adiciona caractere para marcar o final da string
-            buf[MAX_DATA_SIZE - 1] = '\0';
-
-            // Obtém o número do pacote, através do primeiro inteiro na mensagem
-            datagram_number = strtol(buf, NULL, 10);
-
-            // Calcula o número de bytes correspondentes ao número do pacote e ao espaço adicionado, para remover da mensagem
-            if (datagram_number < 10)
-            {
-                dismissed_bytes = 2;
-            }
-            // OBS: Como o tamanho máximo da mensagem é 64 * MAX_DATA_SIZE, datagram_number é no máximo 64
-            else
-            {
-                dismissed_bytes = 3;
+            else if (numReady == 0)
+            { // Ocorreu timeout
+                timeout = 1;
+                break;
             }
 
-            // Na primeira iteração, lê quantos bytes serão enviados, lembrando que os pacotes podem vir fora de ordem
-            if (bytes_to_be_received == 0)
+            else if (fds[0].revents & POLLIN)
             {
-                // Verifica quantos bytes deveriam ser recebidos, através do primeiro inteiro depois do número do pacote e do espaço adicionado
-                bytes_to_be_received = strtol(buf + dismissed_bytes, NULL, 10);
-                snprintf(message_size_string, 20, "%ld", bytes_to_be_received); // String que armazena o tamanho da mensagem
+                // Recebe os bytes enviados pelo servidor
+                if ((numbytes = recv(sockfd, buf, total, 0)) == -1)
+                {
+                    perror("recv");
+                    exit(1);
+                }
+
+                // Adiciona caractere para marcar o final da string
+                buf[MAX_DATA_SIZE - 1] = '\0';
+
+                // Obtém o número do pacote, através do primeiro inteiro na mensagem
+                datagram_number = strtol(buf, NULL, 10);
+
+                // Calcula o número de bytes correspondentes ao número do pacote e ao espaço adicionado, para remover da mensagem
+                if (datagram_number < 10)
+                {
+                    dismissed_bytes = 2;
+                }
+                // OBS: Como o tamanho máximo da mensagem é 64 * MAX_DATA_SIZE, datagram_number é no máximo 64
+                else
+                {
+                    dismissed_bytes = 3;
+                }
+
+                // Na primeira iteração, lê quantos bytes serão enviados, lembrando que os pacotes podem vir fora de ordem
+                if (bytes_to_be_received == 0)
+                {
+                    // Verifica quantos bytes deveriam ser recebidos, através do primeiro inteiro depois do número do pacote e do espaço adicionado
+                    bytes_to_be_received = strtol(buf + dismissed_bytes, NULL, 10);
+                    snprintf(message_size_string, 20, "%ld ", bytes_to_be_received); // String que armazena o tamanho da mensagem
+                }
+
+                dismissed_bytes += strlen(message_size_string); // Contém o número de bytes a ser desprezado (tamanho da mensagem e número do pacote)
+
+                // Calcula a posição em que o datagrama será inserido no buffer da mensagem final
+                if (datagram_number < 10)
+                {
+                    // Caso o número de datagramas seja menor que 10, ele adicionou sempre o mesmo número de bytes de cabeçalho
+                    datagram_position = datagram_number * (total - dismissed_bytes);
+                }
+                else
+                {
+                    // Caso o número de datagramas seja maior ou igual a 10, ele adicionou 1 byte de cabeçalho a menos nos 10 primeiros datagramas
+                    // Por isso, adicionamos esse 10, para compensar essa diferença, já que o dismissed bytes agora é 1 número maior que para datagramas de número menor que 10
+                    datagram_position = datagram_number * (total - dismissed_bytes) + 10;
+                }
+
+                // Copia bytes recebidos para buffer final que armazena toda a mensagem, descartando o tamanho da mensagem, o número do pacote e o espaço adicionado
+                memcpy(received_message + datagram_position, buf + dismissed_bytes, numbytes - dismissed_bytes);
+                // Incrementa o número de bytes recebidos, descontando o tamanho da mensagem, o número do pacote e o espaço adicionado
+                received_bytes += numbytes - dismissed_bytes;
             }
-
-            dismissed_bytes += strlen(message_size_string); // Contém o número de bytes a ser desprezado (tamanho da mensagem e número do pacote)
-
-            // Calcula a posição em que o datagrama será inserido no buffer da mensagem final
-            if (datagram_number < 10)
-            {
-                // Caso o número de datagramas seja menor que 10, ele adicionou sempre o mesmo número de bytes de cabeçalho
-                datagram_position = datagram_number * (total - dismissed_bytes);
-            }
-            else
-            {
-                // Caso o número de datagramas seja maior ou igual a 10, ele adicionou 1 byte de cabeçalho a menos nos 10 primeiros datagramas
-                // Por isso, adicionamos esse 10, para compensar essa diferença, já que o dismissed bytes agora é 1 número maior que para datagramas de número menor que 10
-                datagram_position = datagram_number * (total - dismissed_bytes) + 10;
-            }
-
-            // Copia bytes recebidos para buffer final que armazena toda a mensagem, descartando o tamanho da mensagem, o número do pacote e o espaço adicionado
-            memcpy(received_message + datagram_position, buf + dismissed_bytes, numbytes - dismissed_bytes);
-            // Incrementa o número de bytes recebidos, descontando o tamanho da mensagem, o número do pacote e o espaço adicionado
-            received_bytes += numbytes - dismissed_bytes;
-
         } while (bytes_to_be_received > received_bytes);
 
-        printf("cliente: recebeu '%s'\n", received_message);
-        free(msg);
+        if (!timeout && strlen(received_message) > 0)
+        {
+            printf("cliente: recebeu '%s'\n", received_message);
+            free(msg);
+        }
+        else if (strlen(received_message) == 0 && !timeout)
+        {
+            printf("Houve algum erro ao tentar se comunicar com o servidor. Verifique se ele está funcionando corretamente!\n");
+        }
+        else
+        {
+            printf("A requisição demorou tempo demais para ser respondida. Tente novamente!\n");
+        }
     }
 
     close(sockfd); // Fecha o socket

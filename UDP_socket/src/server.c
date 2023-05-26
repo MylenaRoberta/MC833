@@ -7,8 +7,8 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
 {
     int total = 0; // Número de bytes enviados
     int n, message_size, message_size_size, added_bytes;
-    int counter = 0; // Número do pacote
-    char datagram[MAX_DATA_SIZE - 1];
+    int counter = 0;                  // Número do pacote
+    char datagram[MAX_DATA_SIZE - 1]; // Buffer para o pacote
     char message_size_string[10];
 
     // Caso não encontre nenhum perfil correspondente a query
@@ -18,7 +18,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
         *len = strlen(msg);
     }
 
-    snprintf(message_size_string, 20, "%ld", strlen(msg)); // Obtém o tamanho da mensagem em string
+    snprintf(message_size_string, 20, "%ld ", strlen(msg)); // Obtém o tamanho da mensagem em string
 
     // Garante que todos os bytes serão enviados
     while (total < *len)
@@ -250,10 +250,10 @@ int main(void)
         exit(1);
     }
 
-    printf("servidor: esperando por conexões...\n");
+    printf("servidor: esperando por requisições...\n");
 
     while (1)
-    { // Loop em que o servidor espera por conexões e as atende
+    { // Loop em que o servidor espera por requisições e as atende
 
         int len, numbytes;
         char buf[MAX_DATA_SIZE];   // Buffer para receber mensagem
@@ -273,7 +273,7 @@ int main(void)
 
         // Obtém endereço do cliente, sendo IPv4 ou IPv6
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-        printf("servidor: conexão com %s\n", s);
+        printf("servidor: requisição de %s\n", s);
 
         printf("servidor: recebido '%s'\n", buf);
 
@@ -283,7 +283,7 @@ int main(void)
 
         if (send_all(socket_fd, msg, &len, (struct sockaddr *)&their_addr, addr_len) == -1)
         {
-            // Envia mensagem ao cliente conectado a este processo filho
+            // Envia mensagem ao cliente que enviou a requisição
             perror("sendto");
             printf("Somente %d bytes foram enviados com sucesso.\n", len);
         }
