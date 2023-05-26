@@ -3,6 +3,3 @@ client: src/client_server.c src/client.c
 
 server: src/database.c src/client_server.c src/server.c
 	gcc src/database.c src/client_server.c src/server.c -l sqlite3 -o bin/server
-
-test: src/database.c src/test.c
-	gcc src/database.c src/test.c -l sqlite3 -o bin/test

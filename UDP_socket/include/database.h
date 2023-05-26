@@ -7,8 +7,8 @@
 #include <string.h>
 
 #define DB_PATH "data/profiles.db"
-#define DEFAULT_IMG_PATH "data/default_img.jpg"
-#define RETURN_IMG_PATH "data/profile_img.jpg"
+#define IMG_PATH "data/img"
+#define RET_IMG_PATH "data/img/query_ret_img.jpg"
 
 typedef struct profile {
     char *email;
@@ -25,6 +25,11 @@ typedef struct result {
     struct result *next;
 } result;
 
+typedef struct image_file {
+    char *img_array;
+    int size;
+} image_file;
+
 // Função que insere um nó na lista de resultados
 void insert_node(result **res, char *ret);
 
@@ -34,8 +39,11 @@ int close_db(sqlite3 *db);
 // Função que abre a conexão com o banco de dados
 sqlite3 *open_db(char *path);
 
+// Função que abre o arquivo da imagem e armazena os seus dados
+image_file open_image(char *file_name);
+
 // Função que insere uma imagem para um determinado perfil, dado seu email
-void insert_profile_image(sqlite3 *db, char *email);
+void insert_profile_image(sqlite3 *db, char *email, char *file_name);
 
 // Inicializa o banco de dados
 int initialize_db(sqlite3 *db);
