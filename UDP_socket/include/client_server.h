@@ -14,9 +14,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define PORT "8330"               // Porta utilizada pelo servidor para receber requisições
-#define MAX_DATA_SIZE 1024        // Maior número de bytes que pode ser enviado/recebido por vez
-#define MAX_BUFFER_SIZE 64 * 1024 // Maior número de bytes das mensagens enviadas/recebidas
+#define PORT "8330"                // Porta utilizada pelo servidor para receber requisições
+#define MAX_DATA_SIZE 1024         // Maior número de bytes que pode ser enviado/recebido por vez
+#define MAX_BUFFER_SIZE 250 * 1024 // Maior número de bytes das mensagens enviadas/recebidas
 
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
 void *get_in_addr(struct sockaddr *sa);

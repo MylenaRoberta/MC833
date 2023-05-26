@@ -285,10 +285,14 @@ int main(int argc, char const *argv[])
                 {
                     dismissed_bytes = 2;
                 }
-                // OBS: Como o tamanho máximo da mensagem é 64 * MAX_DATA_SIZE, datagram_number é no máximo 64
-                else
+                // OBS: Como o tamanho máximo da mensagem é 250 * MAX_DATA_SIZE, datagram_number é no máximo 250
+                else if (datagram_number < 100)
                 {
                     dismissed_bytes = 3;
+                }
+                else
+                {
+                    dismissed_bytes = 4;
                 }
 
                 // Na primeira iteração, lê quantos bytes serão enviados, lembrando que os pacotes podem vir fora de ordem
@@ -307,11 +311,15 @@ int main(int argc, char const *argv[])
                     // Caso o número de datagramas seja menor que 10, ele adicionou sempre o mesmo número de bytes de cabeçalho
                     datagram_position = datagram_number * (total - dismissed_bytes);
                 }
-                else
+                else if (datagram_number < 100)
                 {
-                    // Caso o número de datagramas seja maior ou igual a 10, ele adicionou 1 byte de cabeçalho a menos nos 10 primeiros datagramas
+                    // Caso o número de datagramas seja maior ou igual a 10 e menor que 100, ele adicionou 1 byte de cabeçalho a menos nos 10 primeiros datagramas
                     // Por isso, adicionamos esse 10, para compensar essa diferença, já que o dismissed bytes agora é 1 número maior que para datagramas de número menor que 10
                     datagram_position = datagram_number * (total - dismissed_bytes) + 10;
+                }
+                else
+                {
+                    datagram_position = datagram_number * (total - dismissed_bytes) + 10 + 100;
                 }
 
                 // Copia bytes recebidos para buffer final que armazena toda a mensagem, descartando o tamanho da mensagem, o número do pacote e o espaço adicionado

@@ -32,11 +32,16 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
             // Caso seja menor que 10, serão inseridos apenas 1 número inteiro (4 bytes) e 1 espaço (1 byte) = 5 bytes
             snprintf(datagram, 5, "%d ", counter); // Converte os bytes inseridos para char
         }
-        // OBS: Como o tamanho máximo da mensagem é 64 * MAX_DATA_SIZE, counter é no máximo 64
+        // OBS: Como o tamanho máximo da mensagem é 250 * MAX_DATA_SIZE, counter é no máximo 250
+        else if (counter < 100)
+        {
+            // Caso maior que 10 e menor que 100, serão inseridos apenas 2 números inteiros (8 bytes) e 1 espaço (1 byte) = 9 bytes
+            snprintf(datagram, 9, "%d ", counter); // Converte os bytes inseridos para char
+        }
         else
         {
-            // Caso maior que 10, serão inseridos apenas 2 números inteiros (8 bytes) e 1 espaço (1 byte) = 9 bytes
-            snprintf(datagram, 9, "%d ", counter); // Converte os bytes inseridos para char
+            // Caso maior que 100, serão inseridos apenas 3 números inteiros (12 bytes) e 1 espaço (1 byte) = 13 bytes
+            snprintf(datagram, 13, "%d ", counter); // Converte os bytes inseridos para char
         }
 
         // Adiciona tamanho da mensagem em todos os datagramas
