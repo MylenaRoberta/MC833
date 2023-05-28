@@ -3,6 +3,8 @@
 #include <poll.h>
 
 #define TIMEOUT_MS 5000
+#define RET_IMG_NAME "op_return_img.png"
+#define DOWNLOAD_PATH "data/download"
 
 // Função que imprime as opções de operações
 void print_menu(int admin) {
@@ -205,7 +207,7 @@ int main(int argc, char const *argv[]) {
     fds[0].events = POLLIN;
 
     while (1) {
-        // Obtém a operação e os parâmetros, se necessário, especificados pelo cliente
+        // Obtém os parâmetros da operação, se necessário, especificados pelo cliente
         char *msg = get_client_operation(admin);
 
         if (msg == NULL) { // Cliente não deseja fazer mais nenhuma requisição
@@ -213,6 +215,7 @@ int main(int argc, char const *argv[]) {
         }
 
         int len = strlen(msg);
+        int option = atoi(&msg[0]);             // Operação selecionada pelo usuário
         char received_message[MAX_BUFFER_SIZE]; // Buffer para guardar a mensagem recebida
         char buf[MAX_DATA_SIZE];                // Buffer para receber mensagem
         memset(buf, 0, MAX_DATA_SIZE);
@@ -299,7 +302,25 @@ int main(int argc, char const *argv[]) {
         } while (bytes_to_be_received > received_bytes);
 
         if (!timeout && strlen(received_message) > 0) {
-            printf("cliente: recebeu '%s'\n", received_message);
+            if (option == 6) {
+                // Monta o caminho da imagem recuperada
+                char *file_path = malloc(500);
+                sprintf(file_path, "%s/%s", DOWNLOAD_PATH, RET_IMG_NAME);
+
+                FILE *fp = fopen(file_path, "wb");                 // Cria um arquivo para salvar a imagem
+                int bytes = sizeof(received_message) - 1;          // Calcula o tamanho da imagem em bytes
+                fwrite(received_message, 1, bytes, fp); // Armazena a imagem no arquivo criado
+
+                fclose(fp); // Fecha o file handler
+                free(file_path);
+
+                // Monta a mensagem a ser exibida para o cliente
+                printf("cliente: recebeu a imagem '%s' em '%s'\n", RET_IMG_NAME, DOWNLOAD_PATH);
+
+            } else {
+                printf("cliente: recebeu '%s'\n", received_message);
+            }
+
             free(msg);
         } else if (strlen(received_message) == 0 && !timeout) {
             printf("Houve algum erro ao tentar se comunicar com o servidor. Verifique se ele está funcionando corretamente!\n");

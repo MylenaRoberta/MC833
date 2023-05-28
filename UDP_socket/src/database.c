@@ -69,6 +69,12 @@ void insert_profile_image(sqlite3 *db, char *email, char *file_name) {
     sqlite3_bind_blob(stmt, 1, image.img_array, image.size, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, email, -1, SQLITE_STATIC);
 
+    if (sqlite3_step(stmt) == SQLITE_DONE) {    
+        fprintf(stdout, "Image registered successfuly\n");
+    } else {
+        fprintf(stderr, "Image registration failed\n");
+    }
+
     sqlite3_finalize(stmt); // Finaliza a declaração
     free(image.img_array);
 }
@@ -298,8 +304,7 @@ void get_profile_image(sqlite3 *db, result **res, char *email) {
         insert_node(res, image.img_array);      // Insere o nó na lista
     }
 
-    // Finaliza a declaração
-    sqlite3_finalize(stmt);
+    sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
 void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
@@ -329,8 +334,7 @@ void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
         insert_node(res, ret);
     }
     
-    // Finaliza a declaração
-    sqlite3_finalize(stmt);
+    sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
 void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
@@ -363,8 +367,7 @@ void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
         insert_node(res, ret);
     }
     
-    // Finaliza a declaração
-    sqlite3_finalize(stmt);
+    sqlite3_finalize(stmt); // Finaliza a declaração
     free(param);
 }
 
@@ -397,8 +400,7 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
         insert_node(res, ret);
     }
 
-    // Finaliza a declaração
-    sqlite3_finalize(stmt);
+    sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
 int register_profile(sqlite3 *db, profile new_profile) {
@@ -460,7 +462,6 @@ int remove_profile(sqlite3 *db, char *email) {
         ret = -1;
     }
     
-    // Finaliza a declaração
-    sqlite3_finalize(stmt);
+    sqlite3_finalize(stmt); // Finaliza a declaração
     return ret;
 }
