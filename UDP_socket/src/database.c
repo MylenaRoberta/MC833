@@ -38,11 +38,9 @@ sqlite3 *open_db(char *path) {
 image_file open_image(char *file_name) {
     // Monta o caminho da imagem a ser associada
     char *file_path = malloc(500);
-    sprintf(file_path, "%s/%s.png", IMG_PATH, file_name);
+    sprintf(file_path, "%s/%s", IMG_PATH, file_name);
 
-    // Abre o arquivo da imagem
-    FILE *fp = fopen(file_path, "rb");
-
+    FILE *fp = fopen(file_path, "rb"); // Abre o arquivo da imagem
     fseek(fp, 0, SEEK_END); // Move o ponteiro para o final do arquivo
     int flen = ftell(fp);   // Obtém o tamanho do arquivo em bytes
     fseek(fp, 0, SEEK_SET); // Move o ponteiro para o começo do arquivo
@@ -58,8 +56,6 @@ image_file open_image(char *file_name) {
 }
 
 void insert_profile_image(sqlite3 *db, char *email, char *file_name) {
-    // printf("aaa\n");
-
     // Abre o arquivo da imagem e pega os seus dados
     image_file image = open_image(file_name);
 
@@ -185,11 +181,11 @@ int initialize_db(sqlite3 *db) {
     }
 
     // Insere as imagens dos perfis no banco de dados
-    insert_profile_image(db, "ana.oliveira@hotmail.com", "woman_1");
-    insert_profile_image(db, "felipelima@yahoo.com", "man_1");
-    insert_profile_image(db, "juliana.fernandes@outlook.com", "woman_2");
-    insert_profile_image(db, "lucas.santos@uol.com.br", "man_2");
-    insert_profile_image(db, "rafaelacosta@gmail.com", "woman_3");
+    insert_profile_image(db, "ana.oliveira@hotmail.com", "woman_1.png");
+    insert_profile_image(db, "felipelima@yahoo.com", "man_1.png");
+    insert_profile_image(db, "juliana.fernandes@outlook.com", "woman_2.png");
+    insert_profile_image(db, "lucas.santos@uol.com.br", "man_2.png");
+    insert_profile_image(db, "rafaelacosta@gmail.com", "woman_3.png");
 
     fprintf(stdout, "Database initialized\n");
     return 0;
@@ -274,7 +270,7 @@ void get_profile(sqlite3 *db, result **res, char *email) {
     sqlite3_finalize(stmt);
 }
 
-void get_profile_image(sqlite3 *db, char *email) {
+void get_profile_image(sqlite3 *db, result **res, char *email) {
     sqlite3_stmt *stmt;
     char *query = "SELECT image FROM Profiles WHERE email = ?";
 
@@ -283,11 +279,18 @@ void get_profile_image(sqlite3 *db, char *email) {
 
     // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
+
+    // Inicializa a lista
+    *res = NULL;
     
     // Avalia a declaração
     if (sqlite3_step(stmt) == SQLITE_ROW) {   
+        // Monta o caminho da imagem recuperada
+        char *file_path = malloc(500);
+        sprintf(file_path, "%s/%s", IMG_PATH, RET_IMG);
+
         // Cria um arquivo para salvar a imagem
-        FILE *fp = fopen(RET_IMG_PATH, "wb");
+        FILE *fp = fopen(file_path, "wb");
 
         // Calcula o tamanho da imagem em bytes
         int bytes = sqlite3_column_bytes(stmt, 0);
@@ -296,6 +299,10 @@ void get_profile_image(sqlite3 *db, char *email) {
         fwrite(sqlite3_column_blob(stmt, 0), bytes, 1, fp);
 
         fclose(fp); // Fecha o file handler
+        free(file_path);
+
+        image_file image = open_image(RET_IMG); // Abre a imagem
+        insert_node(res, image.img_array);      // Insere o nó na lista
     }
 
     // Finaliza a declaração

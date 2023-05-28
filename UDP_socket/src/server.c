@@ -3,8 +3,7 @@
 #include "../include/database.h"
 
 // Função que garante que todos os bytes serão enviados
-int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, socklen_t addr_len)
-{
+int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, socklen_t addr_len) {
     int total = 0; // Número de bytes enviados
     int n, message_size, message_size_size, added_bytes;
     int counter = 0;                  // Número do pacote
@@ -12,8 +11,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
     char message_size_string[10];
 
     // Caso não encontre nenhum perfil correspondente a query
-    if (*len == 0)
-    {
+    if (*len == 0) {
         strcpy(msg, "Não existe nenhum perfil com essas características!\n");
         *len = strlen(msg);
     }
@@ -21,25 +19,19 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
     snprintf(message_size_string, 20, "%ld ", strlen(msg)); // Obtém o tamanho da mensagem em string
 
     // Garante que todos os bytes serão enviados
-    while (total < *len)
-    {
+    while (total < *len) {
         memset(datagram, 0, MAX_DATA_SIZE - 1); // Limpa o vetor datagram
         added_bytes = 0;                        // Conta o número de bytes adicionados
 
         // Adiciona número do datagrama a ser enviado
-        if (counter < 10)
-        {
+        if (counter < 10) {
             // Caso seja menor que 10, serão inseridos apenas 1 número inteiro (4 bytes) e 1 espaço (1 byte) = 5 bytes
             snprintf(datagram, 5, "%d ", counter); // Converte os bytes inseridos para char
-        }
-        // OBS: Como o tamanho máximo da mensagem é 250 * MAX_DATA_SIZE, counter é no máximo 250
-        else if (counter < 100)
-        {
+        } else if (counter < 100) {
+            // OBS: Como o tamanho máximo da mensagem é 250 * MAX_DATA_SIZE, counter é no máximo 250
             // Caso maior que 10 e menor que 100, serão inseridos apenas 2 números inteiros (8 bytes) e 1 espaço (1 byte) = 9 bytes
             snprintf(datagram, 9, "%d ", counter); // Converte os bytes inseridos para char
-        }
-        else
-        {
+        } else {
             // Caso maior que 100, serão inseridos apenas 3 números inteiros (12 bytes) e 1 espaço (1 byte) = 13 bytes
             snprintf(datagram, 13, "%d ", counter); // Converte os bytes inseridos para char
         }
@@ -55,8 +47,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
         n = sendto(dest_socket, datagram, MAX_DATA_SIZE - 1, 0,
                    their_addr, addr_len);
 
-        if (n == -1)
-        {
+        if (n == -1) {
             break;
         }
 
@@ -66,8 +57,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
 
     *len = total; // Número de bytes realmente enviados
 
-    if (n == -1)
-    {
+    if (n == -1) {
         return -1; // Em caso de algum erro
     }
 
@@ -75,14 +65,12 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
 }
 
 // Função que transforma a lista de resultados em uma única string
-void list_to_string(result **res, char *op_result)
-{
+void list_to_string(result **res, char *op_result) {
     result *r;
     char result[MAX_BUFFER_SIZE];
     memset(result, 0, MAX_BUFFER_SIZE);
 
-    while (*res)
-    {
+    while (*res) {
         r = *res;
         strcat(result, r->row);
         *res = r->next;
@@ -99,103 +87,111 @@ void execute_query(sqlite3 *db, char *query, char *op_result)
 {
     char *email, *first_name, *last_name, *location, *major, *grad_year, *abilities;
     int graduation_year;
-    char ret[30]; // Retorno da operação
-    profile p;    // Novo perfil
-    result *res;  // Resultado da operação
+    char ret[30];     // Retorno da operação
+    profile p;        // Novo perfil
+    result *res;      // Resultado da operação
+    image_file image; // Resultado da operação que recupera a imagem
 
     // Obtém o número da operação pedida pelo cliente
     long op_num = strtol(query, NULL, 10);
 
-    switch (op_num)
-    {
-    // Obtém todos os perfis
-    case 1:
-        get_all_profiles(db, &res);
-        list_to_string(&res, op_result);
-        break;
+    switch (op_num) {
+        // Obtém todos os perfis
+        case 1:
+            get_all_profiles(db, &res);
+            list_to_string(&res, op_result);
+            break;
 
-    // Obtém todas as informações de um perfil, dado seu email
-    case 2:
-        strtok(query, "&");        // Despreza o número da operação
-        email = strtok(NULL, "&"); // Armazena o email especificado
-        get_profile(db, &res, email);
-        list_to_string(&res, op_result);
-        break;
+        // Obtém todas as informações de um perfil, dado seu email
+        case 2:
+            strtok(query, "&");        // Despreza o número da operação
+            email = strtok(NULL, "&"); // Armazena o email especificado
+            get_profile(db, &res, email);
+            list_to_string(&res, op_result);
+            break;
 
-    // Obtém email e nome dos perfis com uma determinada formação acadêmica
-    case 3:
-        strtok(query, "&");        // Despreza o número da operação
-        major = strtok(NULL, "&"); // Armazena o curso especificado
-        get_profiles_from_major(db, &res, major);
-        list_to_string(&res, op_result);
-        break;
+        // Obtém email e nome dos perfis com uma determinada formação acadêmica
+        case 3:
+            strtok(query, "&");        // Despreza o número da operação
+            major = strtok(NULL, "&"); // Armazena o curso especificado
+            get_profiles_from_major(db, &res, major);
+            list_to_string(&res, op_result);
+            break;
 
-    // Obtém email e nome dos perfis com uma determinada habilidade
-    case 4:
-        strtok(query, "&");            // Despreza o número da operação
-        abilities = strtok(NULL, "&"); // Armazena a habilidade especificada
-        get_profiles_from_ability(db, &res, abilities);
-        list_to_string(&res, op_result);
-        break;
+        // Obtém email e nome dos perfis com uma determinada habilidade
+        case 4:
+            strtok(query, "&");            // Despreza o número da operação
+            abilities = strtok(NULL, "&"); // Armazena a habilidade especificada
+            get_profiles_from_ability(db, &res, abilities);
+            list_to_string(&res, op_result);
+            break;
 
-    // Obtém email, nome e curso dos perfis com determinado ano de graduação
-    case 5:
-        strtok(query, "&");                // Despreza o número da operação
-        grad_year = strtok(NULL, "&");     // Armazena, em string, o ano de graduação especificado
-        graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
-        get_profiles_from_graduation_year(db, &res, graduation_year);
-        list_to_string(&res, op_result);
-        break;
+        // Obtém email, nome e curso dos perfis com determinado ano de graduação
+        case 5:
+            strtok(query, "&");                // Despreza o número da operação
+            grad_year = strtok(NULL, "&");     // Armazena, em string, o ano de graduação especificado
+            graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
+            get_profiles_from_graduation_year(db, &res, graduation_year);
+            list_to_string(&res, op_result);
+            break;
 
-    // Adiciona um novo perfil ao banco de dados
-    case 6:
-        strtok(query, "&"); // Despreza o número da operação
+        // Obtém a imagem de um perfil, dado seu email
+        case 6:
+            strtok(query, "&");        // Despreza o número da operação
+            email = strtok(NULL, "&"); // Armazena o email especificado
+            get_profile_image(db, &res, email);
+            list_to_string(&res, op_result);
 
-        p.email = strtok(NULL, "&");         // Armazena o email especificado
-        p.first_name = strtok(NULL, "&");    // Armazena o nome especificado
-        p.last_name = strtok(NULL, "&");     // Armazena o sobrenome especificado
-        p.location = strtok(NULL, "&");      // Armazena o local especificado
-        p.major = strtok(NULL, "&");         // Armazena o curso especificado
-        grad_year = strtok(NULL, "&");       // Armazena, em string, o ano de graduação especificado
-        p.graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
-        p.abilities = strtok(NULL, "&");     // Armazena as habilidades especificadas
+            // Deleta a imagem retornada pela operação
+            char *ret_path = malloc(500);
+            sprintf(ret_path, "%s/%s", IMG_PATH, RET_IMG);
+            remove(ret_path);
+            free(ret_path);
 
-        if (register_profile(db, p) == 0)
-        {
-            strcpy(ret, "Perfil cadastrado com sucesso");
-        }
-        else
-        {
-            strcpy(ret, "Falha no cadastro do perfil");
-        }
+            break;
 
-        snprintf(op_result, 30, "%s", ret);
-        break;
+        // Adiciona um novo perfil ao banco de dados
+        case 7:
+            strtok(query, "&"); // Despreza o número da operação
 
-    // Remove um perfil do banco de dados de acordo com o email
-    case 7:
-        strtok(query, "&");        // Despreza o número da operação
-        email = strtok(NULL, "&"); // Armazena o email especificado
+            p.email = strtok(NULL, "&");         // Armazena o email especificado
+            p.first_name = strtok(NULL, "&");    // Armazena o nome especificado
+            p.last_name = strtok(NULL, "&");     // Armazena o sobrenome especificado
+            p.location = strtok(NULL, "&");      // Armazena o local especificado
+            p.major = strtok(NULL, "&");         // Armazena o curso especificado
+            grad_year = strtok(NULL, "&");       // Armazena, em string, o ano de graduação especificado
+            p.graduation_year = atoi(grad_year); // Converte o ano de graduação para inteiro
+            p.abilities = strtok(NULL, "&");     // Armazena as habilidades especificadas
 
-        if (remove_profile(db, email) == 0)
-        {
-            strcpy(ret, "Perfil removido com sucesso");
-        }
-        else
-        {
-            strcpy(ret, "Falha na remoção do perfil");
-        }
+            if (register_profile(db, p) == 0) {
+                strcpy(ret, "Perfil cadastrado com sucesso");
+            } else {
+                strcpy(ret, "Falha no cadastro do perfil");
+            }
 
-        snprintf(op_result, 30, "%s", ret);
-        break;
+            snprintf(op_result, 30, "%s", ret);
+            break;
 
-    default:
-        break;
+        // Remove um perfil do banco de dados de acordo com o email
+        case 8:
+            strtok(query, "&");        // Despreza o número da operação
+            email = strtok(NULL, "&"); // Armazena o email especificado
+
+            if (remove_profile(db, email) == 0) {
+                strcpy(ret, "Perfil removido com sucesso");
+            } else {
+                strcpy(ret, "Falha na remoção do perfil");
+            }
+
+            snprintf(op_result, 30, "%s", ret);
+            break;
+
+        default:
+            break;
     }
 }
 
-int main(void)
-{
+int main(void) {
     sqlite3 *db = open_db(DB_PATH); // Abre a conexão com o banco de dados
     initialize_db(db);              // Inicializa o banco de dados com os perfis default
 
@@ -213,32 +209,27 @@ int main(void)
     hints.ai_flags = AI_PASSIVE;     // Pega o IP da própria máquina
 
     // Pega informações sobre o endereço do socket do servidor
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0)
-    {
+    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
 
     // Faz um loop pelos resultados e faz bind para o primeiro possível
-    for (p = servinfo; p != NULL; p = p->ai_next)
-    {
+    for (p = servinfo; p != NULL; p = p->ai_next) {
         // Erro ao criar socket do servidor
-        if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-        {
+        if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
             perror("servidor: socket");
             continue;
         }
 
         // Erro ao tentar permitir o reuso de endereços locais ao usar o bind
-        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-        {
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
             perror("setsockopt");
             exit(1);
         }
 
         // Erro ao tentar fazer bind
-        if (bind(socket_fd, p->ai_addr, p->ai_addrlen) == -1)
-        {
+        if (bind(socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
             close(socket_fd);
             perror("servidor: bind");
             continue;
@@ -249,17 +240,14 @@ int main(void)
 
     freeaddrinfo(servinfo); // Libera, pois as informações não serão mais necessárias
 
-    if (p == NULL)
-    {
+    if (p == NULL) {
         fprintf(stderr, "servidor: falha ao fazer o bind\n");
         exit(1);
     }
 
     printf("servidor: esperando por requisições...\n");
 
-    while (1)
-    { // Loop em que o servidor espera por requisições e as atende
-
+    while (1) { // Loop em que o servidor espera por requisições e as atende
         int len, numbytes;
         char buf[MAX_DATA_SIZE];   // Buffer para receber mensagem
         char msg[MAX_BUFFER_SIZE]; // Mensagem a ser enviada
@@ -268,8 +256,7 @@ int main(void)
 
         // Recebe os bytes enviados pelo cliente
         if ((numbytes = recvfrom(socket_fd, buf, MAX_DATA_SIZE - 1, 0,
-                                 (struct sockaddr *)&their_addr, &addr_len)) == -1)
-        {
+                                 (struct sockaddr*)&their_addr, &addr_len)) == -1) {
             perror("recv");
             exit(1);
         }
@@ -277,7 +264,7 @@ int main(void)
         buf[numbytes] = '\0'; // Adiciona caractere para marcar o final da string
 
         // Obtém endereço do cliente, sendo IPv4 ou IPv6
-        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr), s, sizeof s);
         printf("servidor: requisição de %s\n", s);
 
         printf("servidor: recebido '%s'\n", buf);
@@ -286,8 +273,7 @@ int main(void)
         execute_query(db, buf, msg);
         len = strlen(msg);
 
-        if (send_all(socket_fd, msg, &len, (struct sockaddr *)&their_addr, addr_len) == -1)
-        {
+        if (send_all(socket_fd, msg, &len, (struct sockaddr*)&their_addr, addr_len) == -1) {
             // Envia mensagem ao cliente que enviou a requisição
             perror("sendto");
             printf("Somente %d bytes foram enviados com sucesso.\n", len);

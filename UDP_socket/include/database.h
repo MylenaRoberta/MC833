@@ -8,7 +8,7 @@
 
 #define DB_PATH "data/profiles.db"
 #define IMG_PATH "data/img"
-#define RET_IMG_PATH "data/img/query_ret_img.jpg"
+#define RET_IMG "return_img.png"
 
 typedef struct profile {
     char *email;
@@ -55,7 +55,7 @@ void get_all_profiles(sqlite3 *db, result **res);
 void get_profile(sqlite3 *db, result **res, char *email);
 
 // Função que retorna a imagem de um determinado perfil, dado seu email
-void get_profile_image(sqlite3 *db, char *email);
+void get_profile_image(sqlite3 *db, result **res, char *email);
 
 // Função que lista todos os perfis (email e nome) de um determinado curso
 void get_profiles_from_major(sqlite3 *db, result **res, char *major);

@@ -19,6 +19,6 @@
 #define MAX_BUFFER_SIZE 250 * 1024 // Maior número de bytes das mensagens enviadas/recebidas
 
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
-void *get_in_addr(struct sockaddr *sa);
+void* get_in_addr(struct sockaddr *sa);
 
 #endif
