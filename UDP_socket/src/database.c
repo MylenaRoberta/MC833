@@ -69,13 +69,6 @@ void insert_profile_image(sqlite3 *db, char *email, char *file_name) {
     sqlite3_bind_blob(stmt, 1, image.img_array, image.size, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, email, -1, SQLITE_STATIC);
 
-    // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_DONE) {    
-        fprintf(stdout, "Image registered successfully\n");
-    } else {
-        fprintf(stderr, "Image registration failed\n");
-    }
-    
     sqlite3_finalize(stmt); // Finaliza a declaração
     free(image.img_array);
 }
