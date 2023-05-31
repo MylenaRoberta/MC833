@@ -16,13 +16,10 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
         *len = strlen(msg);
     }
 
+    snprintf(message_size_string, 20, "%ld ", *len); // Obtém o tamanho da mensagem em string
+
     if (op_num == 6) {
-        snprintf(message_size_string, 20, "%ld ", strtol(msg, NULL, 10)); // Obtém o tamanho da mensagem em string, caso seja imagem
         total += strlen(message_size_string);   // Para desconsiderar o tamanho da imagem e o espaço entre o tamanho da imagem e a mensagem
-        printf("%s\n", message_size_string);
-    }
-    else {
-        snprintf(message_size_string, 20, "%ld ", strlen(msg)); // Obtém o tamanho da mensagem em string
     }
 
     // Garante que todos os bytes serão enviados
@@ -279,7 +276,12 @@ int main(void) {
 
         // Executa a operação pedida pelo cliente e põe a resposta em msg
         int op_num = execute_query(db, buf, msg);
-        len = strlen(msg);
+        if (op_num == 6) {
+            len = strtol(msg, NULL, 10);
+        }
+        else {
+            len = strlen(msg);
+        }
 
         if (send_all(socket_fd, msg, &len, (struct sockaddr*)&their_addr, addr_len, op_num) == -1) {
             // Envia mensagem ao cliente que enviou a requisição
