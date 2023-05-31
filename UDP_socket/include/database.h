@@ -25,11 +25,6 @@ typedef struct result {
     struct result *next;
 } result;
 
-typedef struct image_file {
-    char *img_array;
-    int size;
-} image_file;
-
 // Função que insere um nó na lista de resultados
 void insert_node(result **res, char *ret);
 
@@ -38,9 +33,6 @@ int close_db(sqlite3 *db);
 
 // Função que abre a conexão com o banco de dados
 sqlite3 *open_db(char *path);
-
-// Função que abre o arquivo da imagem e armazena os seus dados
-image_file open_image(char *file_name);
 
 // Função que insere uma imagem para um determinado perfil, dado seu email
 void insert_profile_image(sqlite3 *db, char *email, char *file_name);

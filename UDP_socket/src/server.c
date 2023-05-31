@@ -90,7 +90,6 @@ void execute_query(sqlite3 *db, char *query, char *op_result)
     char ret[30];     // Retorno da operação
     profile p;        // Novo perfil
     result *res;      // Resultado da operação
-    image_file image; // Resultado da operação que recupera a imagem
 
     // Obtém o número da operação pedida pelo cliente
     long op_num = strtol(query, NULL, 10);
