@@ -309,6 +309,7 @@ int main(int argc, char const *argv[]) {
 
                 FILE *fp = fopen(file_path, "wb");                 // Cria um arquivo para salvar a imagem
                 int bytes = sizeof(received_message) - 1;          // Calcula o tamanho da imagem em bytes
+                printf("%ld %d\n", bytes_to_be_received, bytes);
                 fwrite(received_message, 1, bytes, fp); // Armazena a imagem no arquivo criado
 
                 fclose(fp); // Fecha o file handler

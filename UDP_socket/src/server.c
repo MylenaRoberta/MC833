@@ -3,7 +3,7 @@
 #include "../include/database.h"
 
 // Função que garante que todos os bytes serão enviados
-int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, socklen_t addr_len) {
+int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, socklen_t addr_len, int op_num) {
     int total = 0; // Número de bytes enviados
     int n, message_size, message_size_size, added_bytes;
     int counter = 0;                  // Número do pacote
@@ -16,7 +16,14 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
         *len = strlen(msg);
     }
 
-    snprintf(message_size_string, 20, "%ld ", strlen(msg)); // Obtém o tamanho da mensagem em string
+    if (op_num == 6) {
+        snprintf(message_size_string, 20, "%ld ", strtol(msg, NULL, 10)); // Obtém o tamanho da mensagem em string, caso seja imagem
+        total += strlen(message_size_string);   // Para desconsiderar o tamanho da imagem e o espaço entre o tamanho da imagem e a mensagem
+        printf("%s\n", message_size_string);
+    }
+    else {
+        snprintf(message_size_string, 20, "%ld ", strlen(msg)); // Obtém o tamanho da mensagem em string
+    }
 
     // Garante que todos os bytes serão enviados
     while (total < *len) {
@@ -83,7 +90,7 @@ void list_to_string(result **res, char *op_result) {
 }
 
 // Função que executa a operação do cliente e retorna o seu resultado
-void execute_query(sqlite3 *db, char *query, char *op_result)
+int execute_query(sqlite3 *db, char *query, char *op_result)
 {
     char *email, *first_name, *last_name, *location, *major, *grad_year, *abilities;
     int graduation_year;
@@ -188,6 +195,8 @@ void execute_query(sqlite3 *db, char *query, char *op_result)
         default:
             break;
     }
+
+    return op_num;
 }
 
 int main(void) {
@@ -269,10 +278,10 @@ int main(void) {
         printf("servidor: recebido '%s'\n", buf);
 
         // Executa a operação pedida pelo cliente e põe a resposta em msg
-        execute_query(db, buf, msg);
+        int op_num = execute_query(db, buf, msg);
         len = strlen(msg);
 
-        if (send_all(socket_fd, msg, &len, (struct sockaddr*)&their_addr, addr_len) == -1) {
+        if (send_all(socket_fd, msg, &len, (struct sockaddr*)&their_addr, addr_len, op_num) == -1) {
             // Envia mensagem ao cliente que enviou a requisição
             perror("sendto");
             printf("Somente %d bytes foram enviados com sucesso.\n", len);
