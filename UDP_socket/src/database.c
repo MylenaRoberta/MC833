@@ -76,7 +76,7 @@ void insert_profile_image(sqlite3 *db, char *email, char *file_name) {
     }
 
     sqlite3_finalize(stmt); // Finaliza a declaração
-    free(image.img_array);
+    free(image.img_array);  // Libera a memória alocada
 }
 
 int initialize_db(sqlite3 *db) {
@@ -279,8 +279,7 @@ void get_profile_image(sqlite3 *db, result **res, char *email) {
     // Vincula o valor do parâmetro à declaração
     sqlite3_bind_text(stmt, 1, email, -1, SQLITE_STATIC);
 
-    // Inicializa a lista
-    *res = NULL;
+    *res = NULL; // Inicializa a lista
     
     // Avalia a declaração
     if (sqlite3_step(stmt) == SQLITE_ROW) {   
@@ -288,20 +287,19 @@ void get_profile_image(sqlite3 *db, result **res, char *email) {
         char *file_path = malloc(500);
         sprintf(file_path, "%s/%s", IMG_PATH, RET_IMG);
 
-        // Cria um arquivo para salvar a imagem
-        FILE *fp = fopen(file_path, "wb");
-
-        // Calcula o tamanho da imagem em bytes
-        int bytes = sqlite3_column_bytes(stmt, 0);
+        FILE *fp = fopen(file_path, "wb");                // Cria um arquivo para salvar a imagem
+        int bytes = sqlite3_column_bytes(stmt, 0);        // Calcula o tamanho da imagem em bytes
+        char *img = (char*) sqlite3_column_blob(stmt, 0); // Obtém o array que representa a imagem
+        fwrite(img, bytes, 1, fp);                        // Armazena a imagem no arquivo criado
         
-        // Armazena a imagem no arquivo criado
-        fwrite(sqlite3_column_blob(stmt, 0), bytes, 1, fp);
+        fclose(fp);      // Fecha o file handler
+        free(file_path); // Libera a memória alocada
+        
+        // Monta a string de retorno
+        char *ret = malloc(1024);
+        sprintf(ret, "%d %s", bytes, img);
 
-        fclose(fp); // Fecha o file handler
-        free(file_path);
-
-        image_file image = open_image(RET_IMG); // Abre a imagem
-        insert_node(res, image.img_array);      // Insere o nó na lista
+        insert_node(res, ret); // Insere o nó na lista
     }
 
     sqlite3_finalize(stmt); // Finaliza a declaração
