@@ -268,15 +268,15 @@ void get_profile_image(sqlite3 *db, result **res, char *email) {
 
         FILE *fp = fopen(file_path, "wb");                // Cria um arquivo para salvar a imagem
         int bytes = sqlite3_column_bytes(stmt, 0);        // Calcula o tamanho da imagem em bytes
-        char *img = (char*) sqlite3_column_blob(stmt, 0); // Obtém o array que representa a imagem
+        uchar *img = (uchar*) sqlite3_column_blob(stmt, 0); // Obtém o array que representa a imagem
         fwrite(img, bytes, 1, fp);                        // Armazena a imagem no arquivo criado
         
         fclose(fp);      // Fecha o file handler
         free(file_path); // Libera a memória alocada
         
         // Monta a string de retorno de retorno
-        char *ret = malloc(2*sizeof(img));
-        sprintf(ret, "%d %s", bytes, img);
+        uchar *ret = malloc(2*sizeof(img));
+        sprintf(ret, "%d %hhn", bytes, img);
 
         insert_node(res, ret); // Insere o nó na lista
     }

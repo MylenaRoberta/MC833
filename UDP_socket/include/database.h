@@ -10,6 +10,8 @@
 #define IMG_PATH "data/img"
 #define RET_IMG "return_img.png"
 
+typedef unsigned char uchar;
+
 typedef struct profile {
     char *email;
     char *first_name;
@@ -21,7 +23,7 @@ typedef struct profile {
 } profile;
 
 typedef struct result {
-    char *row;
+    uchar *row;
     struct result *next;
 } result;
 

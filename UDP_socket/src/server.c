@@ -16,7 +16,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
         *len = strlen(msg);
     }
 
-    snprintf(message_size_string, 20, "%ld ", *len); // Obtém o tamanho da mensagem em string
+    snprintf(message_size_string, 20, "%d ", *len); // Obtém o tamanho da mensagem em string
 
     if (op_num == 6) {
         total += strlen(message_size_string);   // Para desconsiderar o tamanho da imagem e o espaço entre o tamanho da imagem e a mensagem

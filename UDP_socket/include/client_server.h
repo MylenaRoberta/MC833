@@ -18,6 +18,8 @@
 #define MAX_DATA_SIZE 1024         // Maior número de bytes que pode ser enviado/recebido por vez
 #define MAX_BUFFER_SIZE 250 * 1024 // Maior número de bytes das mensagens enviadas/recebidas
 
+typedef unsigned char uchar;
+
 // Função responsável por retornar o endereço do socket adequado, seja IPv4 ou IPv6
 void* get_in_addr(struct sockaddr *sa);
 
