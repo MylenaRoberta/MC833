@@ -12,7 +12,8 @@
 
 typedef unsigned char uchar;
 
-typedef struct profile {
+typedef struct profile
+{
     char *email;
     char *first_name;
     char *last_name;
@@ -22,13 +23,15 @@ typedef struct profile {
     char *abilities;
 } profile;
 
-typedef struct result {
-    uchar *row;
+typedef struct result
+{
+    void *row;
+    int size;
     struct result *next;
 } result;
 
 // Função que insere um nó na lista de resultados
-void insert_node(result **res, char *ret);
+void insert_node(result **res, void *ret);
 
 // Função que fecha a conexão com o banco de dados
 int close_db(sqlite3 *db);
