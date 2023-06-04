@@ -1,7 +1,6 @@
 // Código baseado no Beej's guide, especialmente no capítulo 6
 #include "../include/client_server.h"
 #include "../include/database.h"
-#include <time.h>
 
 // Função que garante que todos os bytes serão enviados
 int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, socklen_t addr_len, int *image_helper) {
@@ -51,8 +50,6 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
 
         // Envia MAX_DATA_SIZE - 1 bytes por vez
         n = sendto(dest_socket, datagram, MAX_DATA_SIZE - 1, 0, their_addr, addr_len);
-
-        sleep(0.01); // Será que devemos manter? pra garantir que nenhum pacote será perdido
 
         if (n == -1) {
             break;
