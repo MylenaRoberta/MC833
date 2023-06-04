@@ -175,7 +175,7 @@ void execute_query(sqlite3 *db, char *query, void *op_result, int *image_helper)
             // Deleta a imagem retornada pela operação
             char *ret_path = malloc(500);
             sprintf(ret_path, "%s/%s", IMG_PATH, RET_IMG);
-            // remove(ret_path);
+            remove(ret_path);
             free(ret_path);
 
             break;

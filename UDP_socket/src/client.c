@@ -3,8 +3,8 @@
 #include <poll.h>
 
 #define TIMEOUT_MS 5000
-#define RET_IMG "op_return_img.png"
 #define DOWNLOAD_PATH "data/download"
+#define RET_IMG "return_img.png"
 
 // Função que imprime as opções de operações
 void print_menu(int admin) {
@@ -168,10 +168,10 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    // Faz um loop pelos resultados e "conecta" com o primeiro possível
-    // Quando se trata de UDP, não existe conexão no sentido tradicional,
-    // mas a função connect() faz com que não precisemos especificar o IP do servidor a cada send() e recv()
-    // Usaremos a palavra conectar para se referir a isso, mesmo que ela não possua o sentido tradicional
+    /* Faz um loop pelos resultados e "conecta" com o primeiro possível.
+       Quando se trata de UDP, não existe conexão no sentido tradicional,
+       mas a função connect() faz com que não precisemos especificar o IP do servidor a cada send() e recv()
+       Usaremos a palavra conectar para se referir a isso, mesmo que ela não possua o sentido tradicional */
     for (p = servinfo; p != NULL; p = p->ai_next) {
         // Erro ao criar socket do cliente
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
@@ -204,6 +204,8 @@ int main(int argc, char const *argv[]) {
     struct pollfd fds[1];
     fds[0].fd = sockfd;
     fds[0].events = POLLIN;
+
+    int image_counter = 0; // Contador de imagens baixadas
 
     while (1) {
         // Obtém os parâmetros da operação, se necessário, especificados pelo cliente
@@ -317,10 +319,16 @@ int main(int argc, char const *argv[]) {
 
         if (!timeout && received_bytes > 0) {
             if (option == 6) {
+                // Definição do nome da imagem
+                image_counter += 1;
+                char image_name[50];
+                memset(image_name, 0, sizeof(image_name));
+                sprintf(image_name, "%d_%s", image_counter, RET_IMG);
+
                 // Monta o caminho da imagem recuperada
                 char file_path[100];
-                memset(file_path, 0, 100);
-                sprintf(file_path, "%s/%s", DOWNLOAD_PATH, RET_IMG);
+                memset(file_path, 0, sizeof(file_path));
+                sprintf(file_path, "%s/%s", DOWNLOAD_PATH, image_name);
 
                 FILE *fp = fopen(file_path, "wb");      // Cria um arquivo para salvar a imagem
                 int bytes = bytes_to_be_received;       // Calcula o tamanho da imagem em bytes
@@ -328,7 +336,7 @@ int main(int argc, char const *argv[]) {
                 fclose(fp);                             // Fecha o file handler
 
                 // Monta a mensagem a ser exibida para o cliente
-                printf("cliente: recebeu a imagem '%s' em '%s'\n", RET_IMG, DOWNLOAD_PATH);
+                printf("cliente: recebeu a imagem '%s' em '%s'\n", image_name, DOWNLOAD_PATH);
             } else {
                 printf("cliente: recebeu '%s'\n", received_message);
             }
