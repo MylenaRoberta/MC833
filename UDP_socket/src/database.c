@@ -1,15 +1,13 @@
 #include "../include/database.h"
 
-void insert_node(result **res, void *ret)
-{
+void insert_node(result **res, void *ret) {
     result *r = (result *)malloc(sizeof(result));
     r->row = ret;
     r->next = *res;
     *res = r;
 }
 
-void insert_node_image(result **res, void *ret, int size)
-{
+void insert_image_node(result **res, void *ret, int size) {
     result *r = (result *)malloc(sizeof(result));
     r->row = ret;
     r->next = *res;
@@ -17,31 +15,26 @@ void insert_node_image(result **res, void *ret, int size)
     *res = r;
 }
 
-int close_db(sqlite3 *db)
-{
+int close_db(sqlite3 *db) {
     // Fecha a conexão com o banco de dados
     int rc = sqlite3_close(db);
 
-    if (rc != SQLITE_OK)
-    {
+    if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
         return -1;
     }
 
     fprintf(stdout, "Database connection terminated\n");
-    ;
     return 0;
 }
 
-sqlite3 *open_db(char *path)
-{
+sqlite3 *open_db(char *path) {
     sqlite3 *db; // Handler do banco de dados
 
     // Abre uma nova conexão com o banco de dados
     int rc = sqlite3_open(path, &db);
 
-    if (rc != SQLITE_OK)
-    {
+    if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
         return NULL;
     }
@@ -50,21 +43,19 @@ sqlite3 *open_db(char *path)
     return db;
 }
 
-void insert_profile_image(sqlite3 *db, char *email, char *file_name)
-{
+void insert_profile_image(sqlite3 *db, char *email, char *file_name) {
     // Monta o caminho da imagem a ser associada
-    char *file_path = malloc(100);
+    char file_path[100];
+    memset(file_path, 0, sizeof(file_path));
     sprintf(file_path, "%s/%s", IMG_PATH, file_name);
 
     FILE *fp = fopen(file_path, "rb");   // Abre o arquivo da imagem
     fseek(fp, 0, SEEK_END);              // Move o ponteiro para o final do arquivo
     int flen = ftell(fp);                // Obtém o tamanho do arquivo em bytes
     fseek(fp, 0, SEEK_SET);              // Move o ponteiro para o começo do arquivo
-    char *img = malloc(flen + 1);        // Monta um array para armazenar a imagem
+    char *img = malloc(flen+1);          // Monta um array para armazenar a imagem
     int bytes = fread(img, 1, flen, fp); // Armazena a imagem no array
-
-    fclose(fp);      // Fecha o file handler
-    free(file_path); // Libera a memória alocada
+    fclose(fp);                          // Fecha o file handler
 
     sqlite3_stmt *stmt;
     char *query = "UPDATE Profiles SET image = ? WHERE email = ?";
@@ -75,20 +66,16 @@ void insert_profile_image(sqlite3 *db, char *email, char *file_name)
     sqlite3_bind_blob(stmt, 1, img, bytes, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, email, -1, SQLITE_STATIC);
 
-    if (sqlite3_step(stmt) == SQLITE_DONE)
-    {
+    if (sqlite3_step(stmt) == SQLITE_DONE) {
         fprintf(stdout, "Image registered successfuly\n");
-    }
-    else
-    {
+    } else {
         fprintf(stderr, "Image registration failed\n");
     }
 
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-int initialize_db(sqlite3 *db)
-{
+int initialize_db(sqlite3 *db) {
     char *err_msg = NULL;
 
     // Cria a tabela e insere os perfis iniciais
@@ -181,8 +168,7 @@ int initialize_db(sqlite3 *db)
 
     int rc = sqlite3_exec(db, query, 0, 0, &err_msg); // Executa a query
 
-    if (rc != SQLITE_OK)
-    {
+    if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", err_msg);
         sqlite3_free(err_msg);
         return -1;
@@ -199,8 +185,7 @@ int initialize_db(sqlite3 *db)
     return 0;
 }
 
-void get_all_profiles(sqlite3 *db, result **res)
-{
+void get_all_profiles(sqlite3 *db, result **res) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name, last_name, "
                   "location, major, graduation_year, "
@@ -211,8 +196,7 @@ void get_all_profiles(sqlite3 *db, result **res)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
         char *email = (char *)sqlite3_column_text(stmt, 0);
         char *first_name = (char *)sqlite3_column_text(stmt, 1);
         char *last_name = (char *)sqlite3_column_text(stmt, 2);
@@ -235,8 +219,7 @@ void get_all_profiles(sqlite3 *db, result **res)
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-void get_profile(sqlite3 *db, result **res, char *email)
-{
+void get_profile(sqlite3 *db, result **res, char *email) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name, last_name, "
                   "location, major, graduation_year, "
@@ -250,8 +233,7 @@ void get_profile(sqlite3 *db, result **res, char *email)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
         char *email = (char *)sqlite3_column_text(stmt, 0);
         char *first_name = (char *)sqlite3_column_text(stmt, 1);
         char *last_name = (char *)sqlite3_column_text(stmt, 2);
@@ -274,8 +256,7 @@ void get_profile(sqlite3 *db, result **res, char *email)
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-void get_profile_image(sqlite3 *db, result **res, char *email)
-{
+void get_profile_image(sqlite3 *db, result **res, char *email) {
     sqlite3_stmt *stmt;
     char *query = "SELECT image FROM Profiles WHERE email = ?";
 
@@ -287,35 +268,32 @@ void get_profile_image(sqlite3 *db, result **res, char *email)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
         // Monta o caminho da imagem recuperada
-        char *file_path = malloc(500);
+        char file_path[100];
+        memset(file_path, 0, sizeof(file_path));
         sprintf(file_path, "%s/%s", IMG_PATH, RET_IMG);
 
-        FILE *fp = fopen(file_path, "wb");                  // Cria um arquivo para salvar a imagem
-        int bytes = sqlite3_column_bytes(stmt, 0);          // Calcula o tamanho da imagem em bytes
-        uchar *img = (uchar *)sqlite3_column_blob(stmt, 0); // Obtém o array que representa a imagem
-        fwrite(img, bytes, 1, fp);                          // Armazena a imagem no arquivo criado
-
-        fclose(fp);      // Fecha o file handler
-        free(file_path); // Libera a memória alocada
+        FILE *fp = fopen(file_path, "wb");                // Cria um arquivo para salvar a imagem
+        int bytes = sqlite3_column_bytes(stmt, 0);        // Calcula o tamanho da imagem em bytes
+        char *img = (char *)sqlite3_column_blob(stmt, 0); // Obtém o array que representa a imagem
+        fwrite(img, bytes, 1, fp);                        // Armazena a imagem no arquivo criado
+        fclose(fp);                                       // Fecha o file handler
 
         // Monta o retorno
         char size[20];
         snprintf(size, 20, "%d ", bytes);
-        uchar *ret = malloc(2 * bytes);
+        char *ret = malloc(2*bytes);
         memcpy(ret, size, strlen(size));
         memcpy(ret + strlen(size), img, bytes);
 
-        insert_node_image(res, ret, bytes + strlen(size)); // Insere o nó na lista
+        insert_image_node(res, ret, bytes+strlen(size)); // Insere o nó na lista
     }
 
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-void get_profiles_from_major(sqlite3 *db, result **res, char *major)
-{
+void get_profiles_from_major(sqlite3 *db, result **res, char *major) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE major = ?";
@@ -328,8 +306,7 @@ void get_profiles_from_major(sqlite3 *db, result **res, char *major)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
         char *email = (char *)sqlite3_column_text(stmt, 0);
         char *first_name = (char *)sqlite3_column_text(stmt, 1);
 
@@ -343,8 +320,7 @@ void get_profiles_from_major(sqlite3 *db, result **res, char *major)
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-void get_profiles_from_ability(sqlite3 *db, result **res, char *ability)
-{
+void get_profiles_from_ability(sqlite3 *db, result **res, char *ability) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name FROM Profiles "
                   "WHERE abilities LIKE ?";
@@ -360,8 +336,7 @@ void get_profiles_from_ability(sqlite3 *db, result **res, char *ability)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
         char *email = (char *)sqlite3_column_text(stmt, 0);
         char *first_name = (char *)sqlite3_column_text(stmt, 1);
 
@@ -376,8 +351,7 @@ void get_profiles_from_ability(sqlite3 *db, result **res, char *ability)
     free(param);
 }
 
-void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year)
-{
+void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year) {
     sqlite3_stmt *stmt;
     char *query = "SELECT email, first_name, major FROM Profiles "
                   "WHERE graduation_year = ?";
@@ -390,8 +364,7 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year)
     *res = NULL; // Inicializa a lista
 
     // Avalia a declaração
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
         char *email = (char *)sqlite3_column_text(stmt, 0);
         char *first_name = (char *)sqlite3_column_text(stmt, 1);
         char *major = (char *)sqlite3_column_text(stmt, 2);
@@ -407,13 +380,13 @@ void get_profiles_from_graduation_year(sqlite3 *db, result **res, int year)
     sqlite3_finalize(stmt); // Finaliza a declaração
 }
 
-int register_profile(sqlite3 *db, profile new_profile)
-{
+int register_profile(sqlite3 *db, profile new_profile) {
     sqlite3_stmt *stmt;
     char *query = "INSERT INTO Profiles VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 
     // Monta o caminho da imagem a ser associada
-    char *file_path = malloc(100);
+    char file_path[100];
+    memset(file_path, 0, sizeof(file_path));
     sprintf(file_path, "%s/default_img.png", IMG_PATH);
 
     FILE *fp = fopen(file_path, "rb");   // Abre o arquivo da imagem
@@ -422,9 +395,7 @@ int register_profile(sqlite3 *db, profile new_profile)
     fseek(fp, 0, SEEK_SET);              // Move o ponteiro para o começo do arquivo
     char *img = malloc(flen + 1);        // Monta um array para armazenar a imagem
     int bytes = fread(img, 1, flen, fp); // Armazena a imagem no array
-
-    fclose(fp);      // Fecha o file handler
-    free(file_path); // Libera a memória alocada
+    fclose(fp);                          // Fecha o file handler
 
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL); // Compila a query
 
@@ -439,12 +410,9 @@ int register_profile(sqlite3 *db, profile new_profile)
     sqlite3_bind_blob(stmt, 8, img, bytes, SQLITE_STATIC);
 
     int ret = 0; // Avalia a declaração
-    if (sqlite3_step(stmt) == SQLITE_DONE)
-    {
+    if (sqlite3_step(stmt) == SQLITE_DONE) {
         fprintf(stdout, "Profile registered successfuly\n");
-    }
-    else
-    {
+    } else {
         fprintf(stderr, "Registration failed\n");
         ret = -1;
     }
@@ -453,8 +421,7 @@ int register_profile(sqlite3 *db, profile new_profile)
     return ret;
 }
 
-int remove_profile(sqlite3 *db, char *email)
-{
+int remove_profile(sqlite3 *db, char *email) {
     sqlite3_stmt *stmt;
     char *query = "DELETE FROM Profiles WHERE email = ?";
 
@@ -468,12 +435,9 @@ int remove_profile(sqlite3 *db, char *email)
     get_profile(db, &res, email);
 
     int ret = 0; // Avalia a declaração
-    if ((sqlite3_step(stmt) == SQLITE_DONE) && (res))
-    {
+    if ((sqlite3_step(stmt) == SQLITE_DONE) && (res)) {
         fprintf(stdout, "Profile removed successfuly\n");
-    }
-    else
-    {
+    } else {
         fprintf(stderr, "Removal failed\n");
         ret = -1;
     }
