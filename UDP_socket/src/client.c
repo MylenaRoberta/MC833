@@ -318,7 +318,7 @@ int main(int argc, char const *argv[]) {
         } while (bytes_to_be_received > received_bytes);
 
         if (!timeout && received_bytes > 0) {
-            if (option == 6) {
+            if (option == 6 && received_bytes > 60) {
                 // Definição do nome da imagem
                 image_counter += 1;
                 char image_name[50];

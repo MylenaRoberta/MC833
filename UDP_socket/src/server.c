@@ -9,9 +9,11 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
     char datagram[MAX_DATA_SIZE-1]; // Buffer para o pacote
     char message_size_string[10];
     int n, message_size, message_size_size, added_bytes;
+    int empty = 0;
 
     // Caso não encontre nenhum perfil correspondente a query
     if (*len == 0) {
+        empty = 1;
         strcpy(msg, "Não existe nenhum perfil com essas características!\n");
         *len = strlen(msg);
     }
@@ -19,7 +21,7 @@ int send_all(int dest_socket, char *msg, int *len, struct sockaddr *their_addr, 
     snprintf(message_size_string, 20, "%d ", *len); // Obtém o tamanho da mensagem em string
 
     // Desconsidera o tamanho da imagem e o espaço entre o tamanho da imagem e a mensagem
-    if (image_helper[1] == 6) {
+    if (image_helper[1] == 6 && !empty) {
         total += strlen(message_size_string);
     }
 
